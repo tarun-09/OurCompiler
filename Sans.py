@@ -24,7 +24,7 @@ class Error:
 
 class IllegalCharError(Error):
     def __init__(self, pos_start, pos_end, details):
-        super().__init__(pos_start, pos_end, 'Illegal Character', details)
+        super().__init__(pos_start, pos_end, 'अवैध अक्षर', details)
 
 
 #######################################
@@ -32,39 +32,39 @@ class IllegalCharError(Error):
 #######################################
 
 class Position:
-    def __init__(self, idx, ln, col, fn, ftxt):
-        self.idx = idx
-        self.ln = ln
+    def __init__(self, index, line, col, fn, ftext):
+        self.index = index
+        self.line = line
         self.col = col
         self.fn = fn
-        self.ftxt = ftxt
+        self.ftext = ftext
 
     def advance(self, current_char):
-        self.idx += 1
+        self.index += 1
         self.col += 1
 
         if current_char == '\n':
-            self.ln += 1
+            self.line += 1
             self.col = 0
 
         return self
 
     def copy(self):
-        return Position(self.idx, self.ln, self.col, self.fn, self.ftxt)
+        return Position(self.index, self.line, self.col, self.fn, self.ftext)
 
 
 #######################################
 # TOKENS
 #######################################
 
-TT_INT = 'अंकम्'
-TT_FLOAT = 'चरः'
-TT_PLUS = 'योजनम्'
-TT_MINUS = 'ऊन'
-TT_MUL = 'गुणता'
-TT_DIV = 'भेद'
-TT_LPAREN = 'LPAREN'
-TT_RPAREN = 'RPAREN'
+T_INT = 'अंकम्'
+T_FLOAT = 'चरः'
+T_PLUS = '+'
+T_MINUS = '-'
+T_MUL = '*'
+T_DIV = '/'
+T_LPAREN = '('
+T_RPAREN = ')'
 
 
 class Token:
@@ -91,33 +91,33 @@ class Lexer:
 
     def advance(self):
         self.pos.advance(self.current_char)
-        self.current_char = self.text[self.pos.idx] if self.pos.idx < len(self.text) else None
+        self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
 
     def make_tokens(self):
         tokens = []
 
-        while self.current_char != None:
+        while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
             elif self.current_char == '+':
-                tokens.append(Token(TT_PLUS))
+                tokens.append(Token(T_PLUS))
                 self.advance()
             elif self.current_char == '-':
-                tokens.append(Token(TT_MINUS))
+                tokens.append(Token(T_MINUS))
                 self.advance()
             elif self.current_char == '*':
-                tokens.append(Token(TT_MUL))
+                tokens.append(Token(T_MUL))
                 self.advance()
             elif self.current_char == '/':
-                tokens.append(Token(TT_DIV))
+                tokens.append(Token(T_DIV))
                 self.advance()
             elif self.current_char == '(':
-                tokens.append(Token(TT_LPAREN))
+                tokens.append(Token(T_LPAREN))
                 self.advance()
             elif self.current_char == ')':
-                tokens.append(Token(TT_RPAREN))
+                tokens.append(Token(T_RPAREN))
                 self.advance()
             else:
                 pos_start = self.pos.copy()
@@ -131,9 +131,10 @@ class Lexer:
         num_str = ''
         dot_count = 0
 
-        while self.current_char != None and self.current_char in DIGITS + '.':
+        while self.current_char is not None and self.current_char in DIGITS + '.':
             if self.current_char == '.':
-                if dot_count == 1: break
+                if dot_count == 1:
+                    break
                 dot_count += 1
                 num_str += '.'
             else:
@@ -141,9 +142,9 @@ class Lexer:
             self.advance()
 
         if dot_count == 0:
-            return Token(TT_INT, int(num_str))
+            return Token(T_INT, int(num_str))
         else:
-            return Token(TT_FLOAT, float(num_str))
+            return Token(T_FLOAT, float(num_str))
 
 
 #######################################
