@@ -93,7 +93,8 @@ class Token:
             self.pos_end = pos_end
 
     def __repr__(self):
-        if self.value: return f'{self.type}:{self.value}'
+        if self.value:
+            return f'{self.type}:{self.value}'
         return f'{self.type}'
 
 
@@ -210,7 +211,8 @@ class ParseResult:
 
     def register(self, res):
         if isinstance(res, ParseResult):
-            if res.error: self.error = res.error
+            if res.error:
+                self.error = res.error
             return res.node
 
         return res
@@ -269,7 +271,8 @@ class Parser:
         elif tok.type == T_LPAREN:
             res.register(self.advance())
             expr = res.register(self.expr())
-            if res.error: return res
+            if res.error:
+                return res
             if self.current_tok.type == T_RPAREN:
                 res.register(self.advance())
                 return res.success(expr)
@@ -295,13 +298,15 @@ class Parser:
     def bin_op(self, func, ops):
         res = ParseResult()
         left = res.register(func())
-        if res.error: return res
+        if res.error:
+            return res
 
         while self.current_tok.type in ops:
             op_tok = self.current_tok
             res.register(self.advance())
             right = res.register(func())
-            if res.error: return res
+            if res.error:
+                return res
             left = BinOpNode(left, op_tok, right)
 
         return res.success(left)
@@ -315,7 +320,8 @@ def run(fn, text):
     # Generate tokens
     lexer = Lexer(fn, text)
     tokens, error = lexer.make_tokens()
-    if error: return None, error
+    if error:
+        return None, error
 
     # Generate AST
     parser = Parser(tokens)
