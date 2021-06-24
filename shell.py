@@ -9,7 +9,8 @@ while True:
     else:
         print(result)
 
-##TARUN
-##Abhishek Pandey
-##mohan
-#push and pull working
+
+# TARUN
+# Abhishek Pandey
+# mohan
+# push and pull working

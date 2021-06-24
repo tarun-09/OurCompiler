@@ -4,7 +4,8 @@ def Error_String_With_Arrows(text, pos_start, pos_end):
     # Calculate indices
     index_start = max(text.rfind('\n', 0, pos_start.index), 0)
     index_end = text.find('\n', index_start + 1)
-    if index_end < 0: index_end = len(text)
+    if index_end < 0:
+        index_end = len(text)
 
     # Generate each line
     line_count = pos_end.line - pos_start.line + 1
@@ -21,6 +22,7 @@ def Error_String_With_Arrows(text, pos_start, pos_end):
         # Re-calculate indices
         index_start = index_end
         index_end = text.find('\n', index_start + 1)
-        if index_end < 0: index_end = len(text)
+        if index_end < 0:
+            index_end = len(text)
 
     return result.replace('\t', '')
