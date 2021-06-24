@@ -166,9 +166,9 @@ class Lexer:
             self.advance()
 
         if dot_count == 0:
-            return Token(T_INT, int(num_str),pos_start, self.pos)
+            return Token(T_INT, int(num_str), pos_start, self.pos)  # FORGOT to pass arguments of pos_start,pos_end
         else:
-            return Token(T_FLOAT, float(num_str), pos_start, self.pos)
+            return Token(T_FLOAT, float(num_str), pos_start, self.pos)  # FORGOT to pass arguments of pos_start,pos_end
 
 
 #######################################
