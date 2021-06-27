@@ -23,7 +23,7 @@ class Error:
         self.details = details
 
     def as_string(self):
-        result = f'{self.error_name}: {self.details}\n'
+        result = f'{self.error_name}--> {self.details}\n'
         result += f'File {self.pos_start.fn}, line {self.pos_start.line + 1}'
         result += '\n\n' + Error_String_With_Arrows(self.pos_start.ftext, self.pos_start, self.pos_end)
         return result
@@ -95,7 +95,7 @@ class Token:
 
     def __repr__(self):
         if self.value:
-            return f'{self.type}:{self.value}'
+            return f'{self.type}->{self.value}'
         return f'{self.type}'
 
 
@@ -153,6 +153,7 @@ class Lexer:
     def make_number(self):
         num_str = ''
         dot_count = 0
+        pos_start = self.pos.copy()
 
         while self.current_char is not None and self.current_char in DIGITS + '.':
             if self.current_char == '.':
@@ -165,9 +166,9 @@ class Lexer:
             self.advance()
 
         if dot_count == 0:
-            return Token(T_INT, int(num_str))
+            return Token(T_INT, int(num_str), pos_start, self.pos)  # FORGOT to pass arguments of pos_start,pos_end
         else:
-            return Token(T_FLOAT, float(num_str))
+            return Token(T_FLOAT, float(num_str), pos_start, self.pos)  # FORGOT to pass arguments of pos_start,pos_end
 
 
 #######################################
@@ -237,7 +238,7 @@ class Parser:
         self.tok_index = -1
         self.advance()
 
-    def advance(self, ):
+    def advance(self,):
         self.tok_index += 1
         if self.tok_index < len(self.tokens):
             self.current_tok = self.tokens[self.tok_index]
@@ -329,3 +330,4 @@ def run(fn, text):
     ast = parser.parse()
 
     return ast.node, ast.error
+## pulled TARUN AGRAWAL
