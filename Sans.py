@@ -39,6 +39,29 @@ class InvalidSyntaxError(Error):
         super().__init__(pos_start, pos_end, 'क्रमभङ्ग', details)
 
 
+class RunTimeError(Error):
+    def __init__(self, pos_start, pos_end, details=''):
+         super().__init__(pos_start, pos_end, 'RUNTIME ERROR', details)
+        # self.context = context
+
+    # def as_string(self):
+    #     # result = self.generate_traceback()
+    #     result += f'{self.error_name}: {self.details}'
+    #     result += '\n\n' + Error_String_With_Arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
+    #     return result
+
+    # def generate_traceback(self):
+    #     result = ''
+    #     pos = self.pos_start
+    #     ctx = self.context
+    #
+    #     while ctx:
+    #         result = f'  File {pos.fn}, line {str(pos.ln + 1)}, in {ctx.display_name}\n' + result
+    #         pos = ctx.parent_entry_pos
+    #         ctx = ctx.parent
+    #
+    #     return 'Traceback (most recent call last):\n' + result
+
 #######################################
 # POSITION
 #######################################
@@ -179,6 +202,9 @@ class NumberNode:
     def __init__(self, tok):
         self.tok = tok
 
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
+
     def __repr__(self):
         return f'{self.tok}'
 
@@ -189,6 +215,9 @@ class BinOpNode:
         self.op_tok = op_tok
         self.right_node = right_node
 
+        self.pos_start = self.left_node.pos_start
+        self.pos_end = self.right_node.pos_end
+
     def __repr__(self):
         return f'({self.left_node}, {self.op_tok}, {self.right_node})'
 
@@ -197,6 +226,9 @@ class UnaryOpNode:
     def __init__(self, op_tok, node):
         self.op_tok = op_tok
         self.node = node
+
+        self.pos_start = self.op_tok.pos_start
+        self.pos_end = self.node.pos_end
 
     def __repr__(self):
         return f'({self.op_tok}, {self.node})'
@@ -238,7 +270,7 @@ class Parser:
         self.tok_index = -1
         self.advance()
 
-    def advance(self,):
+    def advance(self, ):
         self.tok_index += 1
         if self.tok_index < len(self.tokens):
             self.current_tok = self.tokens[self.tok_index]
@@ -315,6 +347,141 @@ class Parser:
 
 
 #######################################
+# RUNTIME RESULT
+#######################################
+class RunTimeResult:
+    def __init__(self):
+        self.value = None
+        self.error = None
+
+    def register(self, res):
+        if res.error:
+            self.error = res.error
+        return res.value
+
+    def success(self, value):
+        self.value = value
+        return self
+
+    def failure(self, error):
+        self.error = error
+        return self
+
+
+#######################################
+# Values
+#######################################
+
+class Number:
+    def __init__(self, value):
+        self.value = value
+        self.set_pos()
+        # self.set_context()
+
+    def set_pos(self, pos_start=None, pos_end=None):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        return self
+
+    # def set_context(self, context=None):
+    #     self.context = context
+    #     return self
+
+    def addition(self, other):
+        if isinstance(other, Number):
+            return Number(self.value + other.value), None
+
+    def subtraction(self, other):
+        if isinstance(other, Number):
+            return Number(self.value - other.value), None
+
+    def multiplication(self, other):
+        if isinstance(other, Number):
+            return Number(self.value * other.value), None
+
+    def division(self, other):
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, RunTimeError(other.pos_start, other.pos_end, "DIVISION BY ZERO ERROR")
+
+            return Number(self.value / other.value), None
+
+    def __repr__(self):
+        return str(self.value)
+
+
+#######################################
+# CONTEXT
+#######################################
+#
+# class Context:
+#     def __init__(self, display_name, parent=None, parent_entry_pos=None):
+#         self.display_name = display_name
+#         self.parent = parent
+#         self.parent_entry_pos = parent_entry_pos
+
+
+#######################################
+# INTERPRETER
+#######################################
+class Interpreter:
+    def visit(self, node):
+        method_name = f'visit_{type(node).__name__}'
+        method = getattr(self, method_name, self.no_visit_method)
+        return method(node)
+
+    def no_visit_method(self, node):
+        raise Exception(f'No visit_{type(node).__name__} method defined')
+
+    #################################
+
+    def visit_NumberNode(self, node):
+        return RunTimeResult().success(
+            Number(node.tok.value).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_BinOpNode(self, node):
+        res = RunTimeResult()
+        left = res.register(self.visit(node.left_node))
+        if res.error:
+            return res
+
+        right = res.register(self.visit(node.right_node))
+        if res.error:
+            return res
+
+        if node.op_tok.value == T_PLUS:
+            result, error = left.addition(right)
+        elif node.op_tok.value == T_MINUS:
+            result, error = left.subtraction(right)
+        elif node.op_tok.value == T_MUL:
+            result, error = left.multiplication(right)
+        elif node.op_tok.value == T_DIV:
+            result, error = left.division(right)
+
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(result.set_pos(node.pos_start, node.pos_end))
+
+    def visit_UnaryOpNode(self, node):
+        res = RunTimeResult()
+        number = res.register(self.visit(node.node))
+        if res.error:
+            return res
+
+        error = None
+
+        if node.op_tok.type == T_MINUS:
+            number, error = Number(0).subtraction(number)
+
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(number.set_pos(node.pos_start, node.pos_end))
+
+
+#######################################
 # RUN
 #######################################
 
@@ -328,6 +495,12 @@ def run(fn, text):
     # Generate AST
     parser = Parser(tokens)
     ast = parser.parse()
+    if ast.error:
+        return None, ast.error
 
-    return ast.node, ast.error
-## pulled TARUN AGRAWAL
+    # Run Program
+    interpreter = Interpreter()
+    # context = Context('<program>')
+    result = interpreter.visit(ast.node)
+
+    return result.value, result.error
