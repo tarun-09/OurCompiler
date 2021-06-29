@@ -41,13 +41,13 @@ class InvalidSyntaxError(Error):
 
 class RunTimeError(Error):
     def __init__(self, pos_start, pos_end, details, context):
-        super().__init__(pos_start, pos_end, 'RUNTIME ERROR', details)
+        super().__init__(pos_start, pos_end, 'चलनकालिकदोष', details)
         self.context = context
 
     def as_string(self):
         result = self.generate_traceback()
         result += f'{self.error_name}: {self.details}'
-        result += '\n\n' + Error_String_With_Arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
+        result += '\n\n' + Error_String_With_Arrows(self.pos_start.ftext, self.pos_start, self.pos_end)
         return result
 
     def generate_traceback(self):
@@ -56,7 +56,7 @@ class RunTimeError(Error):
         ctx = self.context
 
         while ctx:
-            result = f'  File {pos.fn}, line {str(pos.ln + 1)}, in {ctx.display_name}\n' + result
+            result = f'  File {pos.fn}, line {str(pos.line + 1)}, in {ctx.display_name}\n' + result
             pos = ctx.parent_entry_pos
             ctx = ctx.parent
 
@@ -99,6 +99,7 @@ T_PLUS = 'योजनम्'
 T_MINUS = 'ऊन'
 T_MUL = 'गुणता'
 T_DIV = 'भेद'
+T_POW = '^'
 T_LPAREN = '('
 T_RPAREN = ')'
 T_EOF = 'अन्त'
@@ -158,6 +159,9 @@ class Lexer:
                 self.advance()
             elif self.current_char == '/':
                 tokens.append(Token(T_DIV, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '^':
+                tokens.append(Token(T_POW, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(T_LPAREN, pos_start=self.pos))
@@ -282,24 +286,17 @@ class Parser:
         if not res.error and self.current_tok.type != T_EOF:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित '+', '-', '*' or '/'"
+                "अपेक्षित '+', '-', '*' वा '/'"
             ))
         return res
 
     ###################################
 
-    def factor(self):
+    def atom(self):
         res = ParseResult()
         tok = self.current_tok
 
-        if tok.type in (T_PLUS, T_MINUS):
-            res.register(self.advance())
-            factor = res.register(self.factor())
-            if res.error:
-                return res
-            return res.success(UnaryOpNode(tok, factor))
-
-        elif tok.type in (T_INT, T_FLOAT):
+        if tok.type in (T_INT, T_FLOAT):
             res.register(self.advance())
             return res.success(NumberNode(tok))
 
@@ -313,14 +310,29 @@ class Parser:
                 return res.success(expr)
             else:
                 return res.failure(InvalidSyntaxError(
-                    self.current_tok.pos_start, self.current_tok.pos_end,
-                    "अपेक्षित ')'"
-                ))
-
+                 self.current_tok.pos_start, self.current_tok.pos_end,
+                 "अपेक्षित ')'"
+                 ))
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "अपेक्षित अंकम् वा चरः"
+            "अपेक्षित अंकम्, चरः, '+', '-', वा  '(' "
         ))
+
+    def power(self):
+        return self.bin_op(self.atom, (T_POW, ), self.factor)
+
+    def factor(self):
+        res = ParseResult()
+        tok = self.current_tok
+
+        if tok.type in (T_PLUS, T_MINUS):
+            res.register(self.advance())
+            factor = res.register(self.factor())
+            if res.error:
+                return res
+            return res.success(UnaryOpNode(tok, factor))
+
+        return self.power()
 
     def term(self):
         return self.bin_op(self.factor, (T_MUL, T_DIV))
@@ -330,16 +342,18 @@ class Parser:
 
     ###################################
 
-    def bin_op(self, func, ops):
+    def bin_op(self, func_1, ops, func_2=None):
+        if func_2 is None:
+            func_2 = func_1
         res = ParseResult()
-        left = res.register(func())
+        left = res.register(func_1())
         if res.error:
             return res
 
         while self.current_tok.type in ops:
             op_tok = self.current_tok
             res.register(self.advance())
-            right = res.register(func())
+            right = res.register(func_2())
             if res.error:
                 return res
             left = BinOpNode(left, op_tok, right)
@@ -375,38 +389,45 @@ class RunTimeResult:
 #######################################
 
 class Number:
-    def __init__(self, value):
+    def __init__(self, value, pos_start=None, pos_end=None, context=None):
         self.value = value
-        self.set_pos()
-        self.set_context()
-
-    def set_pos(self, pos_start=None, pos_end=None):
+        # self.set_pos()
+        # self.set_context()
         self.pos_start = pos_start
         self.pos_end = pos_end
-        return self
-
-    def set_context(self, context=None):
         self.context = context
-        return self
+
+    # def set_pos(self, pos_start=None, pos_end=None):
+    #     self.pos_start = pos_start
+    #     self.pos_end = pos_end
+    #     return self
+    #
+    # def set_context(self, context=None):
+    #     self.context = context
+    #     return self
 
     def addition(self, other):
         if isinstance(other, Number):
-            return Number(self.value + other.value).set_context(self.context), None
+            return Number(self.value + other.value, context=self.context), None
 
     def subtraction(self, other):
         if isinstance(other, Number):
-            return Number(self.value - other.value).set_context(self.context), None
+            return Number(self.value - other.value, context=self.context), None
 
     def multiplication(self, other):
         if isinstance(other, Number):
-            return Number(self.value * other.value).set_context(self.context), None
+            return Number(self.value * other.value, context=self.context), None
 
     def division(self, other):
         if isinstance(other, Number):
             if other.value == 0:
                 return None, RunTimeError(other.pos_start, other.pos_end, "DIVISION BY ZERO ERROR", self.context)
 
-            return Number(self.value / other.value).set_context(self.context), None
+            return Number(self.value / other.value, context=self.context), None
+
+    def exponential(self, other):
+        if isinstance(other, Number):
+            return Number(self.value ** other.value, context=self.context), None
 
     def __repr__(self):
         return str(self.value)
@@ -429,18 +450,13 @@ class Context:
 class Interpreter:
     def visit(self, node, context):
         method_name = f'visit_{type(node).__name__}'
-        method = getattr(self, method_name, self.no_visit_method)
+        method = getattr(self, method_name)
         return method(node, context)
-
-    def no_visit_method(self, node, context):
-        raise Exception(f'No visit_{type(node).__name__} method defined')
 
     #################################
 
     def visit_NumberNode(self, node, context):
-        return RunTimeResult().success(
-            Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
-        )
+        return RunTimeResult().success(Number(node.tok.value, node.pos_start, node.pos_end, context))
 
     def visit_BinOpNode(self, node, context):
         res = RunTimeResult()
@@ -464,10 +480,13 @@ class Interpreter:
         if node.op_tok.type == T_DIV:
             result, error = left.division(right)
 
+        if node.op_tok.type == T_POW:
+            result, error = left.exponential(right)
+
         if error:
             return res.failure(error)
         else:
-            return res.success(result.set_pos(node.pos_start, node.pos_end))
+            return res.success(result)
 
     def visit_UnaryOpNode(self, node, context):
         res = RunTimeResult()
@@ -482,7 +501,7 @@ class Interpreter:
         if error:
             return res.failure(error)
         else:
-            return res.success(number.set_pos(node.pos_start, node.pos_end))
+            return res.success(number)
 
 
 #######################################
