@@ -39,6 +39,30 @@ class InvalidSyntaxError(Error):
         super().__init__(pos_start, pos_end, 'क्रमभङ्ग', details)
 
 
+class RunTimeError(Error):
+    def __init__(self, pos_start, pos_end, details, context):
+        super().__init__(pos_start, pos_end, 'चलनकालिकदोष', details)
+        self.context = context
+
+    def as_string(self):
+        result = self.generate_traceback()
+        result += f'{self.error_name}: {self.details}'
+        result += '\n\n' + Error_String_With_Arrows(self.pos_start.ftext, self.pos_start, self.pos_end)
+        return result
+
+    def generate_traceback(self):
+        result = ''
+        pos = self.pos_start
+        ctx = self.context
+
+        while ctx:
+            result = f'  File {pos.fn}, line {str(pos.line + 1)}, in {ctx.display_name}\n' + result
+            pos = ctx.parent_entry_pos
+            ctx = ctx.parent
+
+        return 'Traceback (most recent call last):\n' + result
+
+
 #######################################
 # POSITION
 #######################################
@@ -75,9 +99,10 @@ T_PLUS = 'योजनम्'
 T_MINUS = 'ऊन'
 T_MUL = 'गुणता'
 T_DIV = 'भेद'
+T_POW = '^'
 T_LPAREN = '('
 T_RPAREN = ')'
-T_EOF = 'अन्त'
+T_EOF = 'समन्त'
 
 
 class Token:
@@ -135,6 +160,9 @@ class Lexer:
             elif self.current_char == '/':
                 tokens.append(Token(T_DIV, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '^':
+                tokens.append(Token(T_POW, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(T_LPAREN, pos_start=self.pos))
                 self.advance()
@@ -166,9 +194,9 @@ class Lexer:
             self.advance()
 
         if dot_count == 0:
-            return Token(T_INT, int(num_str), pos_start, self.pos)  # FORGOT to pass arguments of pos_start,pos_end
+            return Token(T_INT, int(num_str), pos_start, self.pos)
         else:
-            return Token(T_FLOAT, float(num_str), pos_start, self.pos)  # FORGOT to pass arguments of pos_start,pos_end
+            return Token(T_FLOAT, float(num_str), pos_start, self.pos)
 
 
 #######################################
@@ -178,6 +206,9 @@ class Lexer:
 class NumberNode:
     def __init__(self, tok):
         self.tok = tok
+
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
 
     def __repr__(self):
         return f'{self.tok}'
@@ -189,6 +220,9 @@ class BinOpNode:
         self.op_tok = op_tok
         self.right_node = right_node
 
+        self.pos_start = self.left_node.pos_start
+        self.pos_end = self.right_node.pos_end
+
     def __repr__(self):
         return f'({self.left_node}, {self.op_tok}, {self.right_node})'
 
@@ -197,6 +231,9 @@ class UnaryOpNode:
     def __init__(self, op_tok, node):
         self.op_tok = op_tok
         self.node = node
+
+        self.pos_start = self.op_tok.pos_start
+        self.pos_end = self.node.pos_end
 
     def __repr__(self):
         return f'({self.op_tok}, {self.node})'
@@ -238,7 +275,7 @@ class Parser:
         self.tok_index = -1
         self.advance()
 
-    def advance(self,):
+    def advance(self, ):
         self.tok_index += 1
         if self.tok_index < len(self.tokens):
             self.current_tok = self.tokens[self.tok_index]
@@ -249,24 +286,17 @@ class Parser:
         if not res.error and self.current_tok.type != T_EOF:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित '+', '-', '*' or '/'"
+                "अपेक्षित '+', '-', '*' वा '/'"
             ))
         return res
 
     ###################################
 
-    def factor(self):
+    def atom(self):
         res = ParseResult()
         tok = self.current_tok
 
-        if tok.type in (T_PLUS, T_MINUS):
-            res.register(self.advance())
-            factor = res.register(self.factor())
-            if res.error:
-                return res
-            return res.success(UnaryOpNode(tok, factor))
-
-        elif tok.type in (T_INT, T_FLOAT):
+        if tok.type in (T_INT, T_FLOAT):
             res.register(self.advance())
             return res.success(NumberNode(tok))
 
@@ -280,14 +310,29 @@ class Parser:
                 return res.success(expr)
             else:
                 return res.failure(InvalidSyntaxError(
-                    self.current_tok.pos_start, self.current_tok.pos_end,
-                    "अपेक्षित ')'"
-                ))
-
+                 self.current_tok.pos_start, self.current_tok.pos_end,
+                 "अपेक्षित ')'"
+                 ))
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "अपेक्षित अंकम् वा चरः"
+            "अपेक्षित अंकम्, चरः, '+', '-', वा  '(' "
         ))
+
+    def power(self):
+        return self.bin_op(self.atom, (T_POW, ), self.factor)
+
+    def factor(self):
+        res = ParseResult()
+        tok = self.current_tok
+
+        if tok.type in (T_PLUS, T_MINUS):
+            res.register(self.advance())
+            factor = res.register(self.factor())
+            if res.error:
+                return res
+            return res.success(UnaryOpNode(tok, factor))
+
+        return self.power()
 
     def term(self):
         return self.bin_op(self.factor, (T_MUL, T_DIV))
@@ -297,21 +342,166 @@ class Parser:
 
     ###################################
 
-    def bin_op(self, func, ops):
+    def bin_op(self, func_1, ops, func_2=None):
+        if func_2 is None:
+            func_2 = func_1
         res = ParseResult()
-        left = res.register(func())
+        left = res.register(func_1())
         if res.error:
             return res
 
         while self.current_tok.type in ops:
             op_tok = self.current_tok
             res.register(self.advance())
-            right = res.register(func())
+            right = res.register(func_2())
             if res.error:
                 return res
             left = BinOpNode(left, op_tok, right)
 
         return res.success(left)
+
+
+#######################################
+# RUNTIME RESULT
+#######################################
+
+class RunTimeResult:
+    def __init__(self):
+        self.value = None
+        self.error = None
+
+    def register(self, res):
+        if res.error:
+            self.error = res.error
+        return res.value
+
+    def success(self, value):
+        self.value = value
+        return self
+
+    def failure(self, error):
+        self.error = error
+        return self
+
+
+#######################################
+# Values
+#######################################
+
+class Number:
+    def __init__(self, value, pos_start=None, pos_end=None, context=None):
+        self.value = value
+        # self.set_pos()
+        # self.set_context()
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        self.context = context
+
+    # def set_pos(self, pos_start=None, pos_end=None):
+    #     self.pos_start = pos_start
+    #     self.pos_end = pos_end
+    #     return self
+    #
+    # def set_context(self, context=None):
+    #     self.context = context
+    #     return self
+
+    def addition(self, other):
+        if isinstance(other, Number):
+            return Number(self.value + other.value, context=self.context), None
+
+    def subtraction(self, other):
+        if isinstance(other, Number):
+            return Number(self.value - other.value, context=self.context), None
+
+    def multiplication(self, other):
+        if isinstance(other, Number):
+            return Number(self.value * other.value, context=self.context), None
+
+    def division(self, other):
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, RunTimeError(other.pos_start, other.pos_end, "DIVISION BY ZERO ERROR", self.context)
+
+            return Number(self.value / other.value, context=self.context), None
+
+    def exponential(self, other):
+        if isinstance(other, Number):
+            return Number(self.value ** other.value, context=self.context), None
+
+    def __repr__(self):
+        return str(self.value)
+
+
+#######################################
+# CONTEXT
+#######################################
+
+class Context:
+    def __init__(self, display_name, parent=None, parent_entry_pos=None):
+        self.display_name = display_name
+        self.parent = parent
+        self.parent_entry_pos = parent_entry_pos
+
+
+#######################################
+# INTERPRETER
+#######################################
+class Interpreter:
+    def visit(self, node, context):
+        method_name = f'visit_{type(node).__name__}'
+        method = getattr(self, method_name)
+        return method(node, context)
+
+    #################################
+
+    def visit_NumberNode(self, node, context):
+        return RunTimeResult().success(Number(node.tok.value, node.pos_start, node.pos_end, context))
+
+    def visit_BinOpNode(self, node, context):
+        res = RunTimeResult()
+        left = res.register(self.visit(node.left_node, context))
+        if res.error:
+            return res
+
+        right = res.register(self.visit(node.right_node, context))
+        if res.error:
+            return res
+
+        if node.op_tok.type == T_PLUS:
+            result, error = left.addition(right)
+
+        if node.op_tok.type == T_MINUS:
+            result, error = left.subtraction(right)
+
+        if node.op_tok.type == T_MUL:
+            result, error = left.multiplication(right)
+
+        if node.op_tok.type == T_DIV:
+            result, error = left.division(right)
+
+        if node.op_tok.type == T_POW:
+            result, error = left.exponential(right)
+
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(result)
+
+    def visit_UnaryOpNode(self, node, context):
+        res = RunTimeResult()
+        number = res.register(self.visit(node.node, context))
+        if res.error:
+            return res
+
+        error = None
+
+        if node.op_tok.type == T_MINUS:
+            number, error = Number(0).subtraction(number)
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(number)
 
 
 #######################################
@@ -328,6 +518,12 @@ def run(fn, text):
     # Generate AST
     parser = Parser(tokens)
     ast = parser.parse()
+    if ast.error:
+        return None, ast.error
 
-    return ast.node, ast.error
-## pulled TARUN AGRAWAL
+    # Run Program
+    interpreter = Interpreter()
+    context = Context('<program>')
+    result = interpreter.visit(ast.node, context)
+
+    return result.value, result.error
