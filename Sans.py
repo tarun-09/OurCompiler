@@ -102,7 +102,7 @@ T_DIV = 'भेद'
 T_POW = '^'
 T_LPAREN = '('
 T_RPAREN = ')'
-T_EOF = 'अन्त'
+T_EOF = 'समन्त'
 
 
 class Token:
