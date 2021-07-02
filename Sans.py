@@ -56,11 +56,12 @@ class RunTimeError(Error):
         ctx = self.context
 
         while ctx:
-            result = f'  File {pos.fn}, line {str(pos.line + 1)}, in {ctx.display_name}\n' + result
+            result = f' सञ्चिका {pos.fn}, पङ्क्ति {str(pos.line + 1)}, in {ctx.display_name}\n' + result
             pos = ctx.parent_entry_pos
             ctx = ctx.parent
 
-        return 'Traceback (most recent call last):\n' + result
+        return 'Traceback (अधिकतम अपूर्व आहू गत):\n' + result
+        # (most recent call last)
 
 
 #######################################
@@ -310,16 +311,16 @@ class Parser:
                 return res.success(expr)
             else:
                 return res.failure(InvalidSyntaxError(
-                 self.current_tok.pos_start, self.current_tok.pos_end,
-                 "अपेक्षित ')'"
-                 ))
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित ')'"
+                ))
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
             "अपेक्षित अंकम्, चरः, '+', '-', वा  '(' "
         ))
 
     def power(self):
-        return self.bin_op(self.atom, (T_POW, ), self.factor)
+        return self.bin_op(self.atom, (T_POW,), self.factor)
 
     def factor(self):
         res = ParseResult()
@@ -421,7 +422,7 @@ class Number:
     def division(self, other):
         if isinstance(other, Number):
             if other.value == 0:
-                return None, RunTimeError(other.pos_start, other.pos_end, "DIVISION BY ZERO ERROR", self.context)
+                return None, RunTimeError(other.pos_start, other.pos_end, "विभाजन सह शून्य दोष", self.context)
 
             return Number(self.value / other.value, context=self.context), None
 
