@@ -9,12 +9,4 @@ while True:
     else:
         print(result)
 
-# TARUN
-# Abhishek Pandey
-# mohan
-# Gaurang
-# Aishwarya
-# push and pull working
-
-
-# pulled the master branch TARUN_AGRAWAl_Created branch Successfully
+# committed
