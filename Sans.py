@@ -109,9 +109,16 @@ T_EOF = 'समन्त'
 T_KEYWORD = "आरक्षितपद"
 T_IDENTIFIER = "नामन्"
 T_EQU = "="
+T_ISNE = '!='
+T_ISEQ = '=='
+T_ISG = '>'
+T_ISL = '<'
+T_ISGE = '>='
+T_ISLE = '<='
+T_NOT = '!'
 
 KEYWORDS = [
-    'नाम'
+    'नामन्', 'च', 'वा', 'न'
 ]
 
 
@@ -128,7 +135,7 @@ class Token:
         if pos_end:
             self.pos_end = pos_end.copy()
 
-    def matches(self,type_,value):
+    def matches(self, type_, value):
         # if self.value in KEYWORDS:
         #     return True
         # return False
@@ -159,7 +166,7 @@ class Lexer:
     def make_tokens(self):
         tokens = []
 
-        while self.current_char != None:
+        while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
             elif self.current_char in DIGITS:
@@ -333,6 +340,12 @@ class Parser:
             self.current_tok = self.tokens[self.tok_index]
         return self.current_tok
 
+    def back(self, ):
+        self.tok_index -= 1
+        if self.tok_index > -1:
+            self.current_tok = self.tokens[self.tok_index]
+        return self.current_tok
+
     def parse(self):
         res = self.expr()
         if not res.error and self.current_tok.type != T_EOF:
@@ -402,50 +415,111 @@ class Parser:
     def expr(self):
         res = ParseResult()
 
-        if self.current_tok.matches(T_KEYWORD,"नाम"):
-            res.register_advancement()
-            self.advance()
-
-
-
-            if self.current_tok.type != T_IDENTIFIER:
-                return res.failure(InvalidSyntaxError(
-                    self.current_tok.pos_start, self.current_tok.pos_end,
-                    "Expected identifier"
-                ))
-
-
+        if self.current_tok.type == T_IDENTIFIER:
             var_name = self.current_tok
-
             res.register_advancement()
             self.advance()
 
-            if self.current_tok.type != T_EQU:
-                return res.failure(InvalidSyntaxError(
-                    self.current_tok.pos_start, self.current_tok.pos_end,
-                    "Expected '='"
-                ))
-            res.register_advancement()
-            self.advance()
+            if self.current_tok.type == T_EQU:
+                res.register_advancement()
+                self.advance()
 
-            expr = res.register(self.expr())
+                expr = res.register(self.expr())
+                if res.error:
+                    return res
 
-            if res.error:
-                return res
+                return res.success(VarAssignNode(var_name, expr))
 
-            return res.success(VarAssignNode(var_name, expr))
+            else:
+                self.back()
 
         node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
 
-        if (res.error) :
-            return res.failure(InvalidSyntaxError(
+        if res.error:
+            res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "Expected 'नाम', int, float, identifier, '+', '-' or '('"
+                "अपेक्षित अंकम्, चरः, identifier, '+', '-' or '('"
             ))
 
         return res.success(node)
 
-    ###################################
+#####################################################################
+
+        # if self.current_tok.type == T_IDENTIFIER:
+        #     # res.register_advancement()
+        #     # self.advance()
+        #
+        #     var_name = self.current_tok
+        #     res.register_advancement()
+        #     self.advance()
+        #
+        #     if self.current_tok.type != T_EQU:
+        #         return res.failure(InvalidSyntaxError(
+        #             self.current_tok.pos_start, self.current_tok.pos_end,
+        #             "अपेक्षित '='"
+        #         ))
+        #     res.register_advancement()
+        #     self.advance()
+        #
+        #     expr = res.register(self.expr())
+        #     if res.error:
+        #         return res
+        #
+        #     return res.success(VarAssignNode(var_name, expr))
+        #
+        # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+        #
+        # if res.error:
+        #     return res.failure(InvalidSyntaxError(
+        #         self.current_tok.pos_start, self.current_tok.pos_end,
+        #         "अपेक्षित अंकम्, चरः, identifier, '+', '-' or '('"
+        #     ))
+        #
+        # return res.success(node)
+
+    ######################################################################################
+
+        # if self.current_tok.matches(T_KEYWORD, "नामन्"):
+        #     res.register_advancement()
+        #     self.advance()
+        #
+        #     if self.current_tok.type != T_IDENTIFIER:
+        #         return res.failure(InvalidSyntaxError(
+        #             self.current_tok.pos_start, self.current_tok.pos_end,
+        #             "अपेक्षित identifier"
+        #         ))
+        #
+        #     var_name = self.current_tok
+        #
+        #     res.register_advancement()
+        #     self.advance()
+        #
+        #     if self.current_tok.type != T_EQU:
+        #         return res.failure(InvalidSyntaxError(
+        #             self.current_tok.pos_start, self.current_tok.pos_end,
+        #             "अपेक्षित '='"
+        #         ))
+        #     res.register_advancement()
+        #     self.advance()
+        #
+        #     expr = res.register(self.expr())
+        #
+        #     if res.error:
+        #         return res
+        #
+        #     return res.success(VarAssignNode(var_name, expr))
+        #
+        # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+        #
+        # if res.error:
+        #     return res.failure(InvalidSyntaxError(
+        #         self.current_tok.pos_start, self.current_tok.pos_end,
+        #         "अपेक्षित 'नामन्', अंकम्, चरः, identifier, '+', '-' or '('"
+        #     ))
+        #
+        # return res.success(node)
+
+    ###############################################################
 
     def bin_op(self, func_1, ops, func_2=None):
         if func_2 == None:
@@ -522,7 +596,7 @@ class Number:
         if isinstance(other, Number):
             return Number(self.value * other.value).set_context(self.context), None
 
-    def divison(self, other):
+    def division(self, other):
         if isinstance(other, Number):
             if other.value == 0:
                 return None, RunTimeError(
@@ -568,7 +642,7 @@ class SymbolTable:
 
     def get(self, name):
         value = self.symbols.get(name, None)
-        if value == None and self.parent:
+        if value is None and self.parent:
             return self.parent.get(name)
         return value
 
@@ -618,7 +692,8 @@ class Interpreter:
         res = RunTimeResult()
         var_name = node.var_name_tok.value
         value = res.register(self.visit(node.value_node, context))
-        if res.error: return res
+        if res.error:
+            return res
 
         context.symbol_table.set(var_name, value)
         return res.success(value)
@@ -626,9 +701,11 @@ class Interpreter:
     def visit_BinOpNode(self, node, context):
         res = RunTimeResult()
         left = res.register(self.visit(node.left_node, context))
-        if res.error: return res
+        if res.error:
+            return res
         right = res.register(self.visit(node.right_node, context))
-        if res.error: return res
+        if res.error:
+            return res
 
         if node.op_tok.type == T_PLUS:
             result, error = left.addition(right)
@@ -649,7 +726,8 @@ class Interpreter:
     def visit_UnaryOpNode(self, node, context):
         res = RunTimeResult()
         number = res.register(self.visit(node.node, context))
-        if res.error: return res
+        if res.error:
+            return res
 
         error = None
 
@@ -673,12 +751,14 @@ def run(fn, text):
     # Generate tokens
     lexer = Lexer(fn, text)
     tokens, error = lexer.make_tokens()
-    if error: return None, error
+    if error:
+        return None, error
 
     # Generate AST
     parser = Parser(tokens)
     ast = parser.parse()
-    if ast.error: return None, ast.error
+    if ast.error:
+        return None, ast.error
 
     # Run program
     interpreter = Interpreter()
