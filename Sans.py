@@ -109,16 +109,16 @@ T_EOF = 'समन्त'
 T_KEYWORD = "आरक्षितपद"
 T_IDENTIFIER = "नामन्"
 T_EQU = "="
-T_ISNE = '!='
+T_ISNEQ = '!='
 T_ISEQ = '=='
 T_ISG = '>'
 T_ISL = '<'
-T_ISGE = '>='
-T_ISLE = '<='
+T_ISGEQ = '>='
+T_ISLEQ = '<='
 T_NOT = '!'
 
 KEYWORDS = [
-    'नामन्', 'च', 'वा', 'न'
+    'च', 'वा', 'न'
 ]
 
 
@@ -189,7 +189,16 @@ class Lexer:
                 tokens.append(Token(T_POW, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '=':
-                tokens.append(Token(T_EQU, pos_start=self.pos))
+                tokens.append(self.make_equals())
+                self.advance()
+            elif self.current_char == '!':
+                tokens.append(self.make_not_equals())
+                self.advance()
+            elif self.current_char == '>':
+                tokens.append(self.make_greater_than())
+                self.advance()
+            elif self.current_char == '<':
+                tokens.append(self.make_less_than())
                 self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(T_LPAREN, pos_start=self.pos))
@@ -210,7 +219,7 @@ class Lexer:
         id_str = ''
         pos_start = self.pos.copy()
 
-        while self.current_char != None and self.current_char in LETTERS_DIGITS + '_':
+        while self.current_char is not None and self.current_char in LETTERS_DIGITS + '_':
             id_str += self.current_char
             self.advance()
 
@@ -236,6 +245,50 @@ class Lexer:
             return Token(T_INT, int(num_str), pos_start, self.pos)
         else:
             return Token(T_FLOAT, float(num_str), pos_start, self.pos)
+
+    def make_equals(self):
+        tok_type = T_EQU
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = T_ISEQ
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_not_equals(self):
+        tok_type = T_NOT
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = T_ISNEQ
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_greater_than(self):
+        tok_type = T_ISG
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = T_ISGEQ
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_less_than(self):
+        tok_type = T_ISL
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = T_ISLEQ
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
 
 #######################################
@@ -443,81 +496,81 @@ class Parser:
 
         return res.success(node)
 
-#####################################################################
+    #####################################################################
 
-        # if self.current_tok.type == T_IDENTIFIER:
-        #     # res.register_advancement()
-        #     # self.advance()
-        #
-        #     var_name = self.current_tok
-        #     res.register_advancement()
-        #     self.advance()
-        #
-        #     if self.current_tok.type != T_EQU:
-        #         return res.failure(InvalidSyntaxError(
-        #             self.current_tok.pos_start, self.current_tok.pos_end,
-        #             "अपेक्षित '='"
-        #         ))
-        #     res.register_advancement()
-        #     self.advance()
-        #
-        #     expr = res.register(self.expr())
-        #     if res.error:
-        #         return res
-        #
-        #     return res.success(VarAssignNode(var_name, expr))
-        #
-        # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
-        #
-        # if res.error:
-        #     return res.failure(InvalidSyntaxError(
-        #         self.current_tok.pos_start, self.current_tok.pos_end,
-        #         "अपेक्षित अंकम्, चरः, identifier, '+', '-' or '('"
-        #     ))
-        #
-        # return res.success(node)
+    # if self.current_tok.type == T_IDENTIFIER:
+    #     # res.register_advancement()
+    #     # self.advance()
+    #
+    #     var_name = self.current_tok
+    #     res.register_advancement()
+    #     self.advance()
+    #
+    #     if self.current_tok.type != T_EQU:
+    #         return res.failure(InvalidSyntaxError(
+    #             self.current_tok.pos_start, self.current_tok.pos_end,
+    #             "अपेक्षित '='"
+    #         ))
+    #     res.register_advancement()
+    #     self.advance()
+    #
+    #     expr = res.register(self.expr())
+    #     if res.error:
+    #         return res
+    #
+    #     return res.success(VarAssignNode(var_name, expr))
+    #
+    # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+    #
+    # if res.error:
+    #     return res.failure(InvalidSyntaxError(
+    #         self.current_tok.pos_start, self.current_tok.pos_end,
+    #         "अपेक्षित अंकम्, चरः, identifier, '+', '-' or '('"
+    #     ))
+    #
+    # return res.success(node)
 
     ######################################################################################
 
-        # if self.current_tok.matches(T_KEYWORD, "नामन्"):
-        #     res.register_advancement()
-        #     self.advance()
-        #
-        #     if self.current_tok.type != T_IDENTIFIER:
-        #         return res.failure(InvalidSyntaxError(
-        #             self.current_tok.pos_start, self.current_tok.pos_end,
-        #             "अपेक्षित identifier"
-        #         ))
-        #
-        #     var_name = self.current_tok
-        #
-        #     res.register_advancement()
-        #     self.advance()
-        #
-        #     if self.current_tok.type != T_EQU:
-        #         return res.failure(InvalidSyntaxError(
-        #             self.current_tok.pos_start, self.current_tok.pos_end,
-        #             "अपेक्षित '='"
-        #         ))
-        #     res.register_advancement()
-        #     self.advance()
-        #
-        #     expr = res.register(self.expr())
-        #
-        #     if res.error:
-        #         return res
-        #
-        #     return res.success(VarAssignNode(var_name, expr))
-        #
-        # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
-        #
-        # if res.error:
-        #     return res.failure(InvalidSyntaxError(
-        #         self.current_tok.pos_start, self.current_tok.pos_end,
-        #         "अपेक्षित 'नामन्', अंकम्, चरः, identifier, '+', '-' or '('"
-        #     ))
-        #
-        # return res.success(node)
+    # if self.current_tok.matches(T_KEYWORD, "नामन्"):
+    #     res.register_advancement()
+    #     self.advance()
+    #
+    #     if self.current_tok.type != T_IDENTIFIER:
+    #         return res.failure(InvalidSyntaxError(
+    #             self.current_tok.pos_start, self.current_tok.pos_end,
+    #             "अपेक्षित identifier"
+    #         ))
+    #
+    #     var_name = self.current_tok
+    #
+    #     res.register_advancement()
+    #     self.advance()
+    #
+    #     if self.current_tok.type != T_EQU:
+    #         return res.failure(InvalidSyntaxError(
+    #             self.current_tok.pos_start, self.current_tok.pos_end,
+    #             "अपेक्षित '='"
+    #         ))
+    #     res.register_advancement()
+    #     self.advance()
+    #
+    #     expr = res.register(self.expr())
+    #
+    #     if res.error:
+    #         return res
+    #
+    #     return res.success(VarAssignNode(var_name, expr))
+    #
+    # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+    #
+    # if res.error:
+    #     return res.failure(InvalidSyntaxError(
+    #         self.current_tok.pos_start, self.current_tok.pos_end,
+    #         "अपेक्षित 'नामन्', अंकम्, चरः, identifier, '+', '-' or '('"
+    #     ))
+    #
+    # return res.success(node)
 
     ###############################################################
 

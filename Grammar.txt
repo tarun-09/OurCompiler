@@ -1,12 +1,17 @@
-expr    : IDENTIFIER EQU expr
-        : term ((PLUS|MINUS) term)*
+expr            : IDENTIFIER EQU expr
+                : comp-expr((KEYWORD:'वा'|KEYWORD:'च') comp-expr)*
 
-term    : factor ((MUL|DIV) factor)*
+comp-expr       : (KEYWORD:'न'| NOT) comp-expr
+                : arith-expr ((ISEQ|ISNEQ|ISG|ISL|ISGEQ|ISLEQ) arith-expr)*
 
-factor  : (PLUS|MINUS) factor
-        : power
+arith-expr      : term ((PLUS|MINUS) term)*
 
-power   : atom (POW factor)*
+term            : factor ((MUL|DIV) factor)*
 
-atom    : INT|FLOAT| IDENTIFIER
-        : LPAREN expr RPAREN
+factor          : (PLUS|MINUS) factor
+                : power
+
+power           : atom (POW factor)*
+
+atom            : INT|FLOAT| IDENTIFIER
+                : LPAREN expr RPAREN
