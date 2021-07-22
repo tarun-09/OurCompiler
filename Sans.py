@@ -190,16 +190,12 @@ class Lexer:
                 self.advance()
             elif self.current_char == '=':
                 tokens.append(self.make_equals())
-                self.advance()
             elif self.current_char == '!':
                 tokens.append(self.make_not_equals())
-                self.advance()
             elif self.current_char == '>':
                 tokens.append(self.make_greater_than())
-                self.advance()
             elif self.current_char == '<':
                 tokens.append(self.make_less_than())
-                self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(T_LPAREN, pos_start=self.pos))
                 self.advance()
