@@ -632,14 +632,6 @@ class Number:
         if isinstance(other, Number):
             return Boolean(self.value >= other.value).set_context(self.context), None
 
-    def anded_by(self, other):
-        if isinstance(other, Number):
-            return Boolean(self.value and other.value).set_context(self.context), None
-
-    def ored_by(self, other):
-        if isinstance(other, Number):
-            return Boolean(self.value or other.value).set_context(self.context), None
-
     def notted(self):
         return Boolean(1 if self.value == 0 else 0).set_context(self.context), None
 
@@ -670,6 +662,17 @@ class Boolean:
     def set_context(self, context=None):
         self.context = context
         return self
+
+    def anded_by(self, other):
+        if isinstance(other, Boolean):
+            return Boolean(self.boolean and other.boolean).set_context(self.context), None
+
+    def ored_by(self, other):
+        if isinstance(other, Boolean):
+            return Boolean(self.boolean or other.boolean).set_context(self.context), None
+
+    def notted(self):
+        return Boolean(False if self.boolean == True else True).set_context(self.context), None
 
     def copy(self):
         copy = Number(self.boolean)
