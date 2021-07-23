@@ -461,6 +461,30 @@ class Parser:
     def term(self):
         return self.bin_op(self.factor, (T_MUL, T_DIV))
 
+    def arith_expr(self):
+        return self.bin_op(self.term,(T_PLUS,T_MINUS))
+
+    def comp_expr(self):
+        res = ParseResult()
+
+        if self.current_tok.matches(T_KEYWORD,'न'):
+            op_tok=self.current_tok
+            res.register_advancement()
+            self.advance()
+
+            node=res.register(self.comp_expr())
+            if res.error : return res
+            return res.success(UnaryOpNode(op_tok,node))
+        node=res.register(self.bin_op(self.arith_expr,(T_ISNEQ,T_ISEQ,T_ISG,T_ISL,T_ISGEQ,T_ISLEQ)))
+
+        if res.error:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start,
+                self.current_tok.pos_end,
+            "अपेक्षित अंकम्, चरः, '+', '-', '(', वा 'न'" ))
+
+        return res.success(node)
+
     def expr(self):
         res = ParseResult()
 
@@ -482,7 +506,11 @@ class Parser:
             else:
                 self.back()
 
-        node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+# <<<<<<< master
+#         node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+# =======
+#         node = res.register(self.bin_op(self.term, ((T_KEYWORD,'च'),(T_KEYWORD, 'वा'))))
+# >>>>>>> shivansh_kaushal
 
         if res.error:
             res.failure(InvalidSyntaxError(
@@ -579,7 +607,7 @@ class Parser:
         if res.error:
             return res
 
-        while self.current_tok.type in ops:
+        while self.current_tok.type in ops or (self.current_tok.type,self.current_tok.value)in ops:
             op_tok = self.current_tok
             res.register_advancement()
             self.advance()
@@ -658,12 +686,53 @@ class Number:
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None
 
+# <<<<<<< master
+#     def copy(self):
+#         copy = Number(self.value)
+#         copy.set_pos(self.pos_start, self.pos_end)
+#         copy.set_context(self.context)
+#         return copy
+# =======
+#     def compare_for_equal(self, other):
+#         if isinstance(other, Number):
+#             return Number(int(self.value == other.value)).set_context(self.context), None
+
+#     def compare_for_not_equal(self, other):
+#         if isinstance(other, Number):
+#             return Number(int(self.value != other.value)).set_context(self.context), None
+
+#     def compare_whether_less_than(self, other):
+#         if isinstance(other, Number):
+#             return Number(int(self.value < other.value)).set_context(self.context), None
+
+#     def compare_whether_greater_than(self, other):
+#         if isinstance(other, Number):
+#             return Number(int(self.value > other.value)).set_context(self.context), None
+# >>>>>>> shivansh_kaushal
+
+    def compare_whether_less_than_orequalto(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value <= other.value)).set_context(self.context), None
+
+    def compare_whether_greater_than_orequalto(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value >= other.value)).set_context(self.context), None
+
+    def anded_by(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value and other.value)).set_context(self.context), None
+
+    def ored_by(self, other):
+        if isinstance(other, Number):
+            return Number(int(self.value or other.value)).set_context(self.context), None
+    def notted(self):
+        return Number(1 if self.value == 0 else 0).set_context(self.context), None
+
     def copy(self):
         copy = Number(self.value)
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
-
     def __repr__(self):
         return str(self.value)
 
@@ -766,7 +835,22 @@ class Interpreter:
             result, error = left.division(right)
         elif node.op_tok.type == T_POW:
             result, error = left.exponential(right)
-
+        elif node.op_tok.type == T_ISEQ:
+            result, error = left.compare_for_equal(right)
+        elif node.op_tok.type == T_ISNEQ:
+            result, error = left.compare_for_not_equal(right)
+        elif node.op_tok.type == T_ISL:
+            result, error = left.compare_whether_less_than(right)
+        elif node.op_tok.type == T_ISG:
+            result, error = left.compare_whether_greater_than(right)
+        elif node.op_tok.type == T_ISGEQ:
+            result, error = left.compare_whether_greater_than_orequalto(right)
+        elif node.op_tok.type == T_ISLEQ:
+            result, error = left.compare_whether_less_than_orequalto(right)
+        elif node.op_tok.matches(T_KEYWORD, 'च'):
+            result, error = left.anded_by(right)
+        elif node.op_tok.matches(T_KEYWORD, 'वा'):
+            result, error = left.ored_by(right)
         if error:
             return res.failure(error)
         else:
@@ -782,6 +866,8 @@ class Interpreter:
 
         if node.op_tok.type == T_MINUS:
             number, error = Number(0).subtraction(number)
+        elif node.op_tok.matches(T_KEYWORD,"न"):
+            number, error=number.notted()
         if error:
             return res.failure(error)
         else:

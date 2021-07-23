@@ -8,6 +8,3 @@ while True:
         print(error.as_string())
     else:
         print(result)
-
-# committed
-
