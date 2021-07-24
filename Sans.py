@@ -136,9 +136,6 @@ class Token:
             self.pos_end = pos_end.copy()
 
     def matches(self, type_, value):
-        # if self.value in KEYWORDS:
-        #     return True
-        # return False
         return self.type == type_ and self.value == value
 
     def __repr__(self):
@@ -302,6 +299,14 @@ class NumberNode:
         return f'{self.tok}'
 
 
+class BooleanNode:
+    def __init__(self, tok):
+        self.tok = tok
+
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
+
+
 class VarAccessNode:
     def __init__(self, var_name_tok):
         self.var_name_tok = var_name_tok
@@ -420,6 +425,11 @@ class Parser:
             self.advance()
             return res.success(VarAccessNode(tok))
 
+        elif tok.matches(T_KEYWORD, 'असत्यम्') or tok.matches(T_KEYWORD, 'सत्यम्'):
+            res.register_advancement()
+            self.advance()
+            return res.success(BooleanNode(tok))
+
         elif tok.type == T_LPAREN:
             res.register_advancement()
             self.advance()
@@ -482,6 +492,7 @@ class Parser:
 
         if res.error:
             return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 "अपेक्षित अंकम्, चरः, '+', '-','!','न', वा  '('"
             ))
 
@@ -507,6 +518,9 @@ class Parser:
 
             else:
                 self.back()
+
+        # if self.current_tok.matches(T_KEYWORD,'असत्यम्') or self.current_tok.matches(T_KEYWORD, 'सत्यम्'):
+        #     return res.success()
 
         node = res.register(self.bin_op(self.comp_expr, ((T_KEYWORD, 'च'), (T_KEYWORD, 'वा'))))
 
@@ -650,7 +664,12 @@ class Number:
 #######################################
 class Boolean:
     def __init__(self, boolean):
-        self.boolean = boolean
+        if boolean == 'असत्यम्':
+            self.boolean = False
+        elif boolean == 'सत्यम्':
+            self.boolean = True
+        else:
+            self.boolean = boolean
         self.set_pos()
         self.set_context()
 
@@ -675,7 +694,7 @@ class Boolean:
         return Boolean(False if self.boolean == True else True).set_context(self.context), None
 
     def copy(self):
-        copy = Number(self.boolean)
+        copy = Boolean(self.boolean)
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
@@ -739,6 +758,11 @@ class Interpreter:
     def visit_NumberNode(self, node, context):
         return RunTimeResult().success(
             Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_BooleanNode(self, node, context):
+        return RunTimeResult().success(
+            Boolean(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
     def visit_VarAccessNode(self, node, context):
