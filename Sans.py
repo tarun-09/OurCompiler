@@ -121,7 +121,6 @@ KEYWORDS = [
     'च', 'वा', 'न'
 ]
 
-
 class Token:
     def __init__(self, type_, value=None, pos_start=None, pos_end=None):
         self.type = type_
@@ -142,10 +141,8 @@ class Token:
         return self.type == type_ and self.value == value
 
     def __repr__(self):
-        if self.value:
-            return f'{self.type}->{self.value}'
+        if self.value: return f'{self.type}->{self.value}'
         return f'{self.type}'
-
 
 #######################################
 # LEXER
@@ -188,6 +185,12 @@ class Lexer:
             elif self.current_char == '^':
                 tokens.append(Token(T_POW, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '(':
+                tokens.append(Token(T_LPAREN, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ')':
+                tokens.append(Token(T_RPAREN, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '=':
                 tokens.append(self.make_equals())
             elif self.current_char == '!':
@@ -196,12 +199,7 @@ class Lexer:
                 tokens.append(self.make_greater_than())
             elif self.current_char == '<':
                 tokens.append(self.make_less_than())
-            elif self.current_char == '(':
-                tokens.append(Token(T_LPAREN, pos_start=self.pos))
-                self.advance()
-            elif self.current_char == ')':
-                tokens.append(Token(T_RPAREN, pos_start=self.pos))
-                self.advance()
+
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
@@ -227,14 +225,11 @@ class Lexer:
         dot_count = 0
         pos_start = self.pos.copy()
 
-        while self.current_char is not None and self.current_char in DIGITS + '.':
+        while self.current_char != None and self.current_char in DIGITS + '.':
             if self.current_char == '.':
-                if dot_count == 1:
-                    break
+                if dot_count == 1:break
                 dot_count += 1
-                num_str += '.'
-            else:
-                num_str += self.current_char
+            num_str += self.current_char
             self.advance()
 
         if dot_count == 0:
@@ -286,7 +281,6 @@ class Lexer:
 
         return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
-
 #######################################
 # NODES
 #######################################
@@ -301,14 +295,12 @@ class NumberNode:
     def __repr__(self):
         return f'{self.tok}'
 
-
 class VarAccessNode:
     def __init__(self, var_name_tok):
         self.var_name_tok = var_name_tok
 
         self.pos_start = self.var_name_tok.pos_start
         self.pos_end = self.var_name_tok.pos_end
-
 
 class VarAssignNode:
     def __init__(self, var_name_tok, value_node):
@@ -317,7 +309,6 @@ class VarAssignNode:
 
         self.pos_start = self.var_name_tok.pos_start
         self.pos_end = self.value_node.pos_end
-
 
 class BinOpNode:
     def __init__(self, left_node, op_tok, right_node):
@@ -331,7 +322,6 @@ class BinOpNode:
     def __repr__(self):
         return f'({self.left_node}, {self.op_tok}, {self.right_node})'
 
-
 class UnaryOpNode:
     def __init__(self, op_tok, node):
         self.op_tok = op_tok
@@ -342,7 +332,6 @@ class UnaryOpNode:
 
     def __repr__(self):
         return f'({self.op_tok}, {self.node})'
-
 
 #######################################
 # PARSE RESULT
@@ -359,8 +348,7 @@ class ParseResult:
 
     def register(self, res):
         self.advance_count += res.advance_count
-        if res.error:
-            self.error = res.error
+        if res.error: self.error = res.error
         return res.node
 
     def success(self, node):
@@ -371,7 +359,6 @@ class ParseResult:
         if not self.error or self.advance_count == 0:
             self.error = error
         return self
-
 
 #######################################
 # PARSER
@@ -400,12 +387,11 @@ class Parser:
         if not res.error and self.current_tok.type != T_EOF:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित '+', '-', '*' वा '/'"
+                "अपेक्षित '+', '-', '*', '/', '^', '==', '!='"
             ))
         return res
 
     ###################################
-
     def atom(self):
         res = ParseResult()
         tok = self.current_tok
@@ -424,8 +410,7 @@ class Parser:
             res.register_advancement()
             self.advance()
             expr = res.register(self.expr())
-            if res.error:
-                return res
+            if res.error:return res
             if self.current_tok.type == T_RPAREN:
                 res.register_advancement()
                 self.advance()
@@ -452,8 +437,7 @@ class Parser:
             res.register_advancement()
             self.advance()
             factor = res.register(self.factor())
-            if res.error:
-                return res
+            if res.error:return res
             return res.success(UnaryOpNode(tok, factor))
 
         return self.power()
@@ -465,7 +449,7 @@ class Parser:
         return self.bin_op(self.term,(T_PLUS,T_MINUS))
 
     def comp_expr(self):
-        res = ParseResult
+        res = ParseResult()
         if self.current_tok.matches(T_KEYWORD, 'न'):
             op_tok = self.current_tok
             res.register_advancement()
@@ -474,14 +458,16 @@ class Parser:
             node = res.register(self.comp_expr())
             if res.error: return res
             return res.success(UnaryOpNode(op_tok, node))
+
         node = res.register(self.bin_op(self.arith_expr,(T_ISNEQ,T_ISEQ,T_ISG,T_ISL,T_ISGEQ,T_ISLEQ) ))
 
         if res.error:
             return res.failure(InvalidSyntaxError(
-            self.current_tok.pos_start, self.current_tok.pos_end,
-            "अपेक्षित अंकम्, चरः, '+', '-', '(', वा  'न'"
-        ))
-    def expr(self):
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित अंकम्, चरः, '+', '-', '(', वा  'न'"))
+
+        return res.success(node)
+    def expr (self):
         res = ParseResult()
 
         if self.current_tok.type == T_IDENTIFIER:
@@ -492,17 +478,15 @@ class Parser:
             if self.current_tok.type == T_EQU:
                 res.register_advancement()
                 self.advance()
-
                 expr = res.register(self.expr())
-                if res.error:
-                    return res
+                if res.error:return res
 
                 return res.success(VarAssignNode(var_name, expr))
 
             else:
                 self.back()
 
-        node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS,(T_KEYWORD,'वा'),(T_KEYWORD,'च'))))
+        node = res.register(self.bin_op(self.comp_expr, (T_PLUS, T_MINUS,(T_KEYWORD,'वा'),(T_KEYWORD,'च'))))
         if res.error:
             res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
@@ -517,20 +501,17 @@ class Parser:
 
         res = ParseResult()
         left = res.register(func_1())
-        if res.error:
-            return res
+        if res.error:return res
 
         while self.current_tok.type in ops or (self.current_tok.type, self.current_tok.value) in ops:
             op_tok = self.current_tok
             res.register_advancement()
             self.advance()
             right = res.register(func_2())
-            if res.error:
-                return res
+            if res.error: return res
             left = BinOpNode(left, op_tok, right)
 
         return res.success(left)
-
 
 #######################################
 # RUNTIME RESULT
@@ -542,8 +523,7 @@ class RunTimeResult:
         self.error = None
 
     def register(self, res):
-        if res.error:
-            self.error = res.error
+        if res.error:self.error = res.error
         return res.value
 
     def success(self, value):
@@ -553,7 +533,6 @@ class RunTimeResult:
     def failure(self, error):
         self.error = error
         return self
-
 
 #######################################
 # VALUES
@@ -653,9 +632,6 @@ class Number:
     def __repr__(self):
         return str(self.value)
 
-
-
-
 #######################################
 # CONTEXT
 #######################################
@@ -666,7 +642,6 @@ class Context:
         self.parent = parent
         self.parent_entry_pos = parent_entry_pos
         self.symbol_table = None
-
 
 #######################################
 # SYMBOL TABLE
@@ -688,7 +663,6 @@ class SymbolTable:
 
     def remove(self, name):
         del self.symbols[name]
-
 
 #######################################
 # INTERPRETER
@@ -729,8 +703,7 @@ class Interpreter:
         res = RunTimeResult()
         var_name = node.var_name_tok.value
         value = res.register(self.visit(node.value_node, context))
-        if res.error:
-            return res
+        if res.error:return res
 
         context.symbol_table.set(var_name, value)
         return res.success(value)
@@ -738,11 +711,9 @@ class Interpreter:
     def visit_BinOpNode(self, node, context):
         res = RunTimeResult()
         left = res.register(self.visit(node.left_node, context))
-        if res.error:
-            return res
+        if res.error:return res
         right = res.register(self.visit(node.right_node, context))
-        if res.error:
-            return res
+        if res.error: return res
 
         if node.op_tok.type == T_PLUS:
             result, error = left.addition(right)
@@ -781,39 +752,37 @@ class Interpreter:
     def visit_UnaryOpNode(self, node, context):
         res = RunTimeResult()
         number = res.register(self.visit(node.node, context))
-        if res.error:
-            return res
+        if res.error: return res
 
         error = None
 
         if node.op_tok.type == T_MINUS:
-            number, error = Number(0).subtraction(number)
+            number, error = number.multed_by(Number(-1))
         if error:
             return res.failure(error)
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
-
 
 #######################################
 # RUN
 #######################################
 
 global_symbol_table = SymbolTable()
-global_symbol_table.set("null", Number(0))
+global_symbol_table.set("शून्यता", Number(0))
+global_symbol_table.set("असत्यम्", Number(0))
+global_symbol_table.set("सत्यम्", Number(1))
 
 
 def run(fn, text):
     # Generate tokens
     lexer = Lexer(fn, text)
     tokens, error = lexer.make_tokens()
-    if error:
-        return None, error
+    if error: return None, error
 
     # Generate AST
     parser = Parser(tokens)
     ast = parser.parse()
-    if ast.error:
-        return None, ast.error
+    if ast.error: return None, ast.error
 
     # Run program
     interpreter = Interpreter()
