@@ -573,6 +573,16 @@ class Number:
     def set_context(self, context=None):
         self.context = context
         return self
+    def and_truth_table(self,other, value):
+        if(self.value==0 or other==0):
+            return "असत्यम्"
+        else:
+            return "सत्यम"
+    def or_truth_table(self,other, value):
+        if(self.value==0 and other==0):
+            return "असत्यम्"
+        else:
+            return "सत्यम"
 
     def addition(self, other):
         if isinstance(other, Number):
@@ -625,11 +635,11 @@ class Number:
 
     def anded_by(self, other):
         if isinstance(other, Number):
-            return Number(int(self.value and other.value)).set_context(self.context), None
+            return Number(self.and_truth_table(other.value,self.value)).set_context(self.context), None
 
     def ored_by(self, other):
         if isinstance(other, Number):
-            return Number(int(self.value or other.value)).set_context(self.context), None
+            return Number(self.or_truth_table(other.value,self.value)).set_context(self.context), None
 
     def notted(self):
         return Number(1 if self.value == 0 else 0).set_context(self.context), None
