@@ -118,7 +118,7 @@ T_ISLEQ = '<='
 T_NOT = '!'
 
 KEYWORDS = [
-    'च', 'वा', 'न'
+    'च', 'वा', 'न', 'असत्यम्', 'सत्यम्'
 ]
 
 
@@ -136,9 +136,6 @@ class Token:
             self.pos_end = pos_end.copy()
 
     def matches(self, type_, value):
-        # if self.value in KEYWORDS:
-        #     return True
-        # return False
         return self.type == type_ and self.value == value
 
     def __repr__(self):
@@ -302,6 +299,14 @@ class NumberNode:
         return f'{self.tok}'
 
 
+class BooleanNode:
+    def __init__(self, tok):
+        self.tok = tok
+
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
+
+
 class VarAccessNode:
     def __init__(self, var_name_tok):
         self.var_name_tok = var_name_tok
@@ -420,6 +425,11 @@ class Parser:
             self.advance()
             return res.success(VarAccessNode(tok))
 
+        elif tok.matches(T_KEYWORD, 'असत्यम्') or tok.matches(T_KEYWORD, 'सत्यम्'):
+            res.register_advancement()
+            self.advance()
+            return res.success(BooleanNode(tok))
+
         elif tok.type == T_LPAREN:
             res.register_advancement()
             self.advance()
@@ -461,6 +471,33 @@ class Parser:
     def term(self):
         return self.bin_op(self.factor, (T_MUL, T_DIV))
 
+    def arith_expr(self):
+        return self.bin_op(self.term, (T_PLUS, T_MINUS))
+
+    def comp_expr(self):
+        res = ParseResult()
+
+        if self.current_tok.matches(T_KEYWORD, 'न') or self.current_tok.type == T_NOT:
+            op_tok = self.current_tok
+            res.register_advancement()
+            self.advance()
+
+            node = res.register(self.comp_expr())
+            if res.error:
+                return res
+
+            return res.success(UnaryOpNode(op_tok, node))
+
+        node = res.register(self.bin_op(self.arith_expr, (T_ISG, T_ISEQ, T_ISNEQ, T_ISL, T_ISLEQ, T_ISGEQ)))
+
+        if res.error:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित अंकम्, चरः, '+', '-','!','न', वा  '('"
+            ))
+
+        return res.success(node)
+
     def expr(self):
         res = ParseResult()
 
@@ -482,7 +519,7 @@ class Parser:
             else:
                 self.back()
 
-        node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
+        node = res.register(self.bin_op(self.comp_expr, ((T_KEYWORD, 'च'), (T_KEYWORD, 'वा'))))
 
         if res.error:
             res.failure(InvalidSyntaxError(
@@ -491,82 +528,6 @@ class Parser:
             ))
 
         return res.success(node)
-
-    #####################################################################
-
-    # if self.current_tok.type == T_IDENTIFIER:
-    #     # res.register_advancement()
-    #     # self.advance()
-    #
-    #     var_name = self.current_tok
-    #     res.register_advancement()
-    #     self.advance()
-    #
-    #     if self.current_tok.type != T_EQU:
-    #         return res.failure(InvalidSyntaxError(
-    #             self.current_tok.pos_start, self.current_tok.pos_end,
-    #             "अपेक्षित '='"
-    #         ))
-    #     res.register_advancement()
-    #     self.advance()
-    #
-    #     expr = res.register(self.expr())
-    #     if res.error:
-    #         return res
-    #
-    #     return res.success(VarAssignNode(var_name, expr))
-    #
-    # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
-    #
-    # if res.error:
-    #     return res.failure(InvalidSyntaxError(
-    #         self.current_tok.pos_start, self.current_tok.pos_end,
-    #         "अपेक्षित अंकम्, चरः, identifier, '+', '-' or '('"
-    #     ))
-    #
-    # return res.success(node)
-
-    ######################################################################################
-
-    # if self.current_tok.matches(T_KEYWORD, "नामन्"):
-    #     res.register_advancement()
-    #     self.advance()
-    #
-    #     if self.current_tok.type != T_IDENTIFIER:
-    #         return res.failure(InvalidSyntaxError(
-    #             self.current_tok.pos_start, self.current_tok.pos_end,
-    #             "अपेक्षित identifier"
-    #         ))
-    #
-    #     var_name = self.current_tok
-    #
-    #     res.register_advancement()
-    #     self.advance()
-    #
-    #     if self.current_tok.type != T_EQU:
-    #         return res.failure(InvalidSyntaxError(
-    #             self.current_tok.pos_start, self.current_tok.pos_end,
-    #             "अपेक्षित '='"
-    #         ))
-    #     res.register_advancement()
-    #     self.advance()
-    #
-    #     expr = res.register(self.expr())
-    #
-    #     if res.error:
-    #         return res
-    #
-    #     return res.success(VarAssignNode(var_name, expr))
-    #
-    # node = res.register(self.bin_op(self.term, (T_PLUS, T_MINUS)))
-    #
-    # if res.error:
-    #     return res.failure(InvalidSyntaxError(
-    #         self.current_tok.pos_start, self.current_tok.pos_end,
-    #         "अपेक्षित 'नामन्', अंकम्, चरः, identifier, '+', '-' or '('"
-    #     ))
-    #
-    # return res.success(node)
 
     ###############################################################
 
@@ -579,7 +540,7 @@ class Parser:
         if res.error:
             return res
 
-        while self.current_tok.type in ops:
+        while self.current_tok.type in ops or (self.current_tok.type, self.current_tok.value) in ops:
             op_tok = self.current_tok
             res.register_advancement()
             self.advance()
@@ -658,6 +619,41 @@ class Number:
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None
 
+    def get_comparison_eq(self, other):
+        if isinstance(other, Number):
+            return Boolean(self.value == other.value).set_context(self.context), None
+
+    def get_comparison_ne(self, other):
+        if isinstance(other, Number):
+            return Boolean(self.value != other.value).set_context(self.context), None
+
+    def get_comparison_lt(self, other):
+        if isinstance(other, Number):
+            return Boolean(self.value < other.value).set_context(self.context), None
+
+    def get_comparison_gt(self, other):
+        if isinstance(other, Number):
+            return Boolean(self.value > other.value).set_context(self.context), None
+
+    def get_comparison_lte(self, other):
+        if isinstance(other, Number):
+            return Boolean(self.value <= other.value).set_context(self.context), None
+
+    def get_comparison_gte(self, other):
+        if isinstance(other, Number):
+            return Boolean(self.value >= other.value).set_context(self.context), None
+
+    def anded_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value and other.value).set_context(self.context), None
+
+    def ored_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value or other.value).set_context(self.context), None
+
+    def notted(self):
+        return Boolean(1 if self.value == 0 else 0).set_context(self.context), None
+
     def copy(self):
         copy = Number(self.value)
         copy.set_pos(self.pos_start, self.pos_end)
@@ -666,6 +662,53 @@ class Number:
 
     def __repr__(self):
         return str(self.value)
+
+
+#######################################
+# BOOLEAN
+#######################################
+class Boolean:
+    def __init__(self, boolean):
+        if boolean == 'असत्यम्':
+            self.boolean = False
+        elif boolean == 'सत्यम्':
+            self.boolean = True
+        else:
+            self.boolean = boolean
+        self.set_pos()
+        self.set_context()
+
+    def set_pos(self, pos_start=None, pos_end=None):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        return self
+
+    def set_context(self, context=None):
+        self.context = context
+        return self
+
+    def anded_by(self, other):
+        if isinstance(other, Boolean):
+            return Boolean(self.boolean and other.boolean).set_context(self.context), None
+
+    def ored_by(self, other):
+        if isinstance(other, Boolean):
+            return Boolean(self.boolean or other.boolean).set_context(self.context), None
+
+    def notted(self):
+        return Boolean(False if self.boolean == True else True).set_context(self.context), None
+
+    def copy(self):
+        copy = Boolean(self.boolean)
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
+
+    def __repr__(self):
+        if self.boolean:
+            return str("सत्यम्")
+        else:
+            return str("असत्यम्")
 
 
 #######################################
@@ -722,6 +765,11 @@ class Interpreter:
             Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
+    def visit_BooleanNode(self, node, context):
+        return RunTimeResult().success(
+            Boolean(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
     def visit_VarAccessNode(self, node, context):
         res = RunTimeResult()
         var_name = node.var_name_tok.value
@@ -766,6 +814,22 @@ class Interpreter:
             result, error = left.division(right)
         elif node.op_tok.type == T_POW:
             result, error = left.exponential(right)
+        elif node.op_tok.type == T_ISEQ:
+            result, error = left.get_comparison_eq(right)
+        elif node.op_tok.type == T_ISNEQ:
+            result, error = left.get_comparison_ne(right)
+        elif node.op_tok.type == T_ISL:
+            result, error = left.get_comparison_lt(right)
+        elif node.op_tok.type == T_ISG:
+            result, error = left.get_comparison_gt(right)
+        elif node.op_tok.type == T_ISLEQ:
+            result, error = left.get_comparison_lte(right)
+        elif node.op_tok.type == T_ISGEQ:
+            result, error = left.get_comparison_gte(right)
+        elif node.op_tok.matches(T_KEYWORD, 'च'):
+            result, error = left.anded_by(right)
+        elif node.op_tok.matches(T_KEYWORD, 'वा'):
+            result, error = left.ored_by(right)
 
         if error:
             return res.failure(error)
@@ -782,6 +846,8 @@ class Interpreter:
 
         if node.op_tok.type == T_MINUS:
             number, error = Number(0).subtraction(number)
+        elif node.op_tok.matches(T_KEYWORD, 'न') or node.op_tok.type == T_NOT:
+            number, error = number.notted()
         if error:
             return res.failure(error)
         else:
@@ -793,7 +859,9 @@ class Interpreter:
 #######################################
 
 global_symbol_table = SymbolTable()
-global_symbol_table.set("null", Number(0))
+global_symbol_table.set("लुप्तः", Number(0))
+global_symbol_table.set("असत्यम्", Number(0))
+global_symbol_table.set("सत्यम्", Number(1))
 
 
 def run(fn, text):
