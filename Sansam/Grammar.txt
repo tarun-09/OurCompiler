@@ -13,5 +13,5 @@ factor          : (PLUS|MINUS) factor
 
 power           : atom (POW factor)*
 
-atom            : INT|FLOAT|IDENTIFIER|(KEYWORD:'असत्यम्'|KEYWORD:'सत्यम्')
+atom            : INT|FLOAT| IDENTIFIER
                 : LPAREN expr RPAREN
