@@ -519,9 +519,6 @@ class Parser:
             else:
                 self.back()
 
-        # if self.current_tok.matches(T_KEYWORD,'असत्यम्') or self.current_tok.matches(T_KEYWORD, 'सत्यम्'):
-        #     return res.success()
-
         node = res.register(self.bin_op(self.comp_expr, ((T_KEYWORD, 'च'), (T_KEYWORD, 'वा'))))
 
         if res.error:
@@ -645,6 +642,14 @@ class Number:
     def get_comparison_gte(self, other):
         if isinstance(other, Number):
             return Boolean(self.value >= other.value).set_context(self.context), None
+
+    def anded_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value and other.value).set_context(self.context), None
+
+    def ored_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value or other.value).set_context(self.context), None
 
     def notted(self):
         return Boolean(1 if self.value == 0 else 0).set_context(self.context), None
