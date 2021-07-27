@@ -24,7 +24,7 @@ class Interpreter:
 
     def visit_StringNode(self, node, context):
         return rtr.RunTimeResult().success(
-            string.String(node.tok.value).set-context(context).set_pos(node.pos_start, node.pos_end)
+            string.String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
     def visit_BooleanNode(self, node, context):

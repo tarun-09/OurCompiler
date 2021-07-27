@@ -27,3 +27,6 @@ class String(val.Value):
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
+
+    def __repr__(self):
+        return f'"{self.value}"'
