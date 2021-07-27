@@ -6,9 +6,9 @@ import Context
 import Sansam.Interpreter.SymbolTable as st
 
 global_symbol_table = st.SymbolTable()
-global_symbol_table.set("लुप्तः", Values.Number.Number(0))
-global_symbol_table.set("असत्यम्", Values.Number.Number(0))
-global_symbol_table.set("सत्यम्", Values.Number.Number(1))
+global_symbol_table.set("लुप्तः", Values.Number.null)
+global_symbol_table.set("असत्यम्", Values.Number.false)
+global_symbol_table.set("सत्यम्", Values.Number.true)
 
 
 def run(fn, text):

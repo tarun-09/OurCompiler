@@ -1,5 +1,6 @@
 T_INT = 'अंकम्'
 T_FLOAT = 'चरः'
+T_STRING = 'सूत्र'
 T_PLUS = 'योजनम्'
 T_MINUS = 'ऊन'
 T_MUL = 'गुणता'
