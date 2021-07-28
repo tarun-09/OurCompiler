@@ -12,18 +12,20 @@ class Parser:
 
     def advance(self, ):
         self.tok_index += 1
-        if self.tok_index < len(self.tokens):
-            self.current_tok = self.tokens[self.tok_index]
+        self.update_current_tok()
         return self.current_tok
 
-    def back(self, ):
-        self.tok_index -= 1
-        if self.tok_index > -1:
-            self.current_tok = self.tokens[self.tok_index]
+    def reverse(self, amount=1):
+        self.tok_index -= amount
+        self.update_current_tok()
         return self.current_tok
+
+    def update_current_tok(self):
+        if self.tok_index > -1 and self.tok_index < len(self.tokens):
+            self.current_tok = self.tokens[self.tok_index]
 
     def parse(self):
-        res = self.expr()
+        res = self.statements()
         if not res.error and self.current_tok.type != token.T_EOF:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
@@ -140,7 +142,7 @@ class Parser:
                 return res.success(nodes.VarAssignNode(var_name, expr))
 
             else:
-                self.back()
+                self.reverse()
 
         node = res.register(self.bin_op(self.comp_expr, ((token.T_KEYWORD, 'च'), (token.T_KEYWORD, 'वा'))))
 
@@ -151,6 +153,47 @@ class Parser:
             ))
 
         return res.success(node)
+
+    def statements(self):
+        res = pr.ParseResult()
+        statements = []
+        pos_start = self.current_tok.pos_start.copy()
+
+        while self.current_tok.type == token.T_NL:
+            res.register_advancement()
+            self.advance()
+
+        statement = res.register(self.expr())
+        if res.error:
+            return res
+        statements.append(statement)
+
+        more_statements = True
+
+        while True:
+            newline_count = 0
+            while self.current_tok.type == token.T_NL:
+                res.register_advancement()
+                self.advance()
+                newline_count += 1
+
+            if newline_count == 0:
+                more_statements = False
+
+            if not more_statements:
+                break
+
+            statement = res.try_register(self.expr())
+            if not statement:
+                self.reverse(res.to_reverse_count)
+                more_statements = False
+                continue
+
+            statements.append(statement)
+
+        return res.success(nodes.ListNode(
+            statements, pos_start, self.current_tok.pos_end.copy()
+        ))
 
     ###############################################################
 

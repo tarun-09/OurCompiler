@@ -1,3 +1,5 @@
+statements      : NewLine* expr(NewLine + expr)* NewLine*
+
 expr            : IDENTIFIER EQU expr
                 : comp-expr((KEYWORD:'वा'|KEYWORD:'च') comp-expr)*
 
@@ -13,5 +15,8 @@ factor          : (PLUS|MINUS) factor
 
 power           : atom (POW factor)*
 
-atom            : INT|FLOAT| IDENTIFIER
+atom            : INT|FLOAT|STRING|IDENTIFIER
                 : LPAREN expr RPAREN
+                : list-expr
+
+list-expr       : LSQUARE (expr (COMMA expr)*)? RSQUARE

@@ -3,6 +3,8 @@ import Sansam.Error.Errors as errors
 import Sansam.Values.Number as num
 import Sansam.Lexer.Token as token
 import Sansam.Values.Boolean as boolean
+import Sansam.Values.String as string
+import Sansam.Values.List as list
 
 
 class Interpreter:
@@ -19,6 +21,23 @@ class Interpreter:
     def visit_NumberNode(self, node, context):
         return rtr.RunTimeResult().success(
             num.Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_StringNode(self, node, context):
+        return rtr.RunTimeResult().success(
+            string.String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_ListNode(self, node, context):
+        res = rtr.RunTimeResult()
+        elements = []
+
+        for element_node in node.element_nodes:
+            elements.append(res.register(self.visit(element_node, context)))
+            if res.error: return res
+
+        return res.success(
+            list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
     def visit_BooleanNode(self, node, context):
