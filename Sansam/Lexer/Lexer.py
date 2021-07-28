@@ -27,6 +27,7 @@ class Lexer:
                 self.advance()
             elif self.current_char == '\n' or self.current_char == '\r':
                 tokens.append(token.Token(token.T_NL, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '"':
                 tokens.append(self.make_string())
             elif self.current_char in DIGITS:
