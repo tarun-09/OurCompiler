@@ -70,9 +70,61 @@ class Parser:
                     "अपेक्षित ')'"
                 ))
 
+        elif tok.type == token.T_LSQUARE:
+            list_expr = res.register(self.list_expr())
+            if res.error: return res
+            return res.success(list_expr)
+
         return res.failure(error.InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "अपेक्षित अंकम्, चरः, '+', '-', वा  '('"
+            "अपेक्षित अंकम्, चरः, '+', '-','[', वा  '('"
+        ))
+
+    def list_expr(self):
+        res = pr.ParseResult()
+        element_nodes = []
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.type != token.T_LSQUARE:
+            return res.failure(error.InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            f"अपेक्षित '['"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == token.T_RSQUARE:
+            res.register_advancement()
+            self.advance()
+        else:
+            element_nodes.append(res.register(self.expr()))
+            if res.error:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित ']',अंकम्, चरः, '+', '-','[', वा  '('"
+                ))
+
+            while self.current_tok.type == token.T_COMMA:
+                res.register_advancement()
+                self.advance()
+
+                element_nodes.append(res.register(self.expr()))
+                if res.error: return res
+
+            if self.current_tok.type != token.T_RSQUARE:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित ',' or ']'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+        return res.success(nodes.ListNode(
+            element_nodes,
+            pos_start,
+            self.current_tok.pos_end.copy()
         ))
 
     def power(self):
@@ -118,7 +170,7 @@ class Parser:
         if res.error:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित अंकम्, चरः, '+', '-','!','न', वा  '('"
+                "अपेक्षित अंकम्, चरः, '+', '-','!','न','[' वा  '('"
             ))
 
         return res.success(node)
@@ -149,7 +201,7 @@ class Parser:
         if res.error:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित अंकम्, चरः, identifier, '+', '-' or '('"
+                "अपेक्षित अंकम्, चरः, identifier, '+', '-' '[' वा '('"
             ))
 
         return res.success(node)
