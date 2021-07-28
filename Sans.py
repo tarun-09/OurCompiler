@@ -118,9 +118,9 @@ T_ISLEQ = '<='
 T_NOT = '!'
 
 KEYWORDS = [
-    'च', 'वा', 'न', 'असत्यम्', 'सत्यम्'
+    'च', 'वा', 'न', 'असत्यम्', 'सत्यम्', 'यदि', 'नो चेत्', 'चेत्', 'तदा'
 ]
-
+#'यदि', 'नो चेत्', ' चेत्'
 
 class Token:
     def __init__(self, type_, value=None, pos_start=None, pos_end=None):
@@ -344,7 +344,13 @@ class UnaryOpNode:
         return f'({self.op_tok}, {self.node})'
 
 
+class IfNode:
+    def __init__(self, cases, else_case):
+        self.cases = cases
+        self.else_case = else_case
 
+        self.pos_start = self.cases[0][0].pos_start
+        self.pos_end = (self.else_case or self.cases[len(self.cases) - 1][0]).pos_end
 
 
 #######################################
@@ -408,6 +414,64 @@ class Parser:
         return res
 
     ###################################
+    def if_expr(self):
+        res = ParseResult()
+        cases = []
+        else_case = None
+
+        if not self.current_tok.matches(T_KEYWORD, 'यदि'):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित 'यदि'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        condition = res.register(self.expr())
+        if res.error: return res
+
+        if not self.current_tok.matches(T_KEYWORD, 'तदा'):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित 'तदा'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        expr = res.register(self.expr())
+        if res.error: return res
+        cases.append((condition, expr))
+
+        while self.current_tok.matches(T_KEYWORD, 'नो चेत्'):
+            res.register_advancement()
+            self.advance()
+
+            condition = res.register(self.expr())
+            if res.error: return res
+
+            if not self.current_tok.matches(T_KEYWORD, 'तदा'):
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित 'तदा'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            expr = res.register(self.expr())
+            if res.error: return res
+            cases.append((condition, expr))
+
+        if self.current_tok.matches(T_KEYWORD, 'चेत्'):
+            res.register_advancement()
+            self.advance()
+
+            else_case = res.register(self.expr())
+            if res.error: return res
+
+        return res.success(IfNode(cases, else_case))
 
     def atom(self):
         res = ParseResult()
@@ -438,6 +502,10 @@ class Parser:
                     self.current_tok.pos_start, self.current_tok.pos_end,
                     "अपेक्षित ')'"
                 ))
+        elif tok.matches(T_KEYWORD, 'यदि'):
+            if_expr = res.register(self.if_expr())
+            if res.error: return res
+            return res.success(if_expr)
 
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
@@ -485,6 +553,8 @@ class Parser:
 
         if res.error:
             return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start,
+                self.current_tok.pos_end,
                 "अपेक्षित अंकम्, चरः, '+', '-','!','न', वा  '('"
             ))
 
@@ -643,9 +713,13 @@ class Number:
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
+    def is_true(self):
+        return self.value != 0
 
     def __repr__(self):
         return str(self.value)
+
+
 
 
 #######################################
@@ -826,6 +900,25 @@ class Interpreter:
             return res.failure(error)
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
+
+    def visit_IfNode(self, node, context):
+        res = RunTimeResult()
+
+        for condition, expr in node.cases:
+            condition_value = res.register(self.visit(condition, context))
+            if res.error: return res
+
+            if condition_value=='सत्यम्':
+                expr_value = res.register(self.visit(expr, context))
+                if res.error: return res
+                return res.success(expr_value)
+
+        if node.else_case:
+            else_value = res.register(self.visit(node.else_case, context))
+            if res.error: return res
+            return res.success(else_value)
+
+        return res.success(None)
 
 
 #######################################
