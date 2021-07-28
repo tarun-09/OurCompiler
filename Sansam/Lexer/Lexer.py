@@ -162,7 +162,7 @@ class Lexer:
         escape_character = False
         self.advance()
 
-        escape_characters ={
+        escape_characters = {
             'n': '\n',
             't': '\t'
         }
