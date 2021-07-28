@@ -1,3 +1,5 @@
+statements      : NewLine* expr(NewLine + expr)* NewLine*
+
 expr            : IDENTIFIER EQU expr
                 : comp-expr((KEYWORD:'वा'|KEYWORD:'च') comp-expr)*
 
