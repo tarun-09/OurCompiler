@@ -12,6 +12,8 @@ T_EOF = 'समन्त'
 T_KEYWORD = "आरक्षितपद"
 T_IDENTIFIER = "नामन्"
 T_EQU = "="
+T_LSQUARE = 'LSQUARE'
+T_RSQUARE = 'RSQUARE'
 T_ISNEQ = '!='
 T_ISEQ = '=='
 T_ISG = '>'
@@ -19,6 +21,7 @@ T_ISL = '<'
 T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
+T_COMMA	= 'COMMA'
 
 KEYWORDS = [
     'च', 'वा', 'न', 'असत्यम्', 'सत्यम्'

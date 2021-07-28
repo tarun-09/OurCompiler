@@ -15,3 +15,6 @@ power           : atom (POW factor)*
 
 atom            : INT|FLOAT|STRING|IDENTIFIER
                 : LPAREN expr RPAREN
+                : list-expr
+
+list-expr       : LSQUARE (expr (COMMA expr)*)? RSQUARE

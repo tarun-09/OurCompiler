@@ -60,6 +60,15 @@ class Lexer:
             elif self.current_char == ')':
                 tokens.append(token.Token(token.T_RPAREN, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '[':
+                tokens.append(token.Token(token.T_LSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ']':
+                tokens.append(token.Token(token.T_RSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ',':
+                tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
+                self.advance()
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
