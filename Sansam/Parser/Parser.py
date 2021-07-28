@@ -87,8 +87,8 @@ class Parser:
 
         if self.current_tok.type != token.T_LSQUARE:
             return res.failure(error.InvalidSyntaxError(
-            self.current_tok.pos_start, self.current_tok.pos_end,
-            f"अपेक्षित '['"
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित '['"
             ))
 
         res.register_advancement()
