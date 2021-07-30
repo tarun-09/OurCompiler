@@ -31,67 +31,67 @@ class Parser:
             ))
         return res
 
-    ###################################
+############################################
 
-    def if_expr(self):
-        res = pr.ParseResult()
-        cases = []
-        else_case = None
-
-        if not self.current_tok.matches(token.T_KEYWORD, 'यदि'):
-            return res.failure(InvalidSyntaxError(
-                self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित 'यदि'"
-            ))
-
-        res.register_advancement()
-        self.advance()
-
-        condititon = res.register(self.expr())
-        if res.error: return res
-
-        if not self.current_tok.matches(token.T_KEYWORD, 'अन्तः'):
-            return res.failure(InvalidSyntaxError(
-                self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित 'अन्तः'"
-            ))
-
-        res.register_advancement()
-        self.advance()
-
-        expr = res.register(self.expr())
-        if res.error: return res
-        cases.append((condititon, expr))
-
-        while self.current_tok.matches(token.T_KEYWORD, 'नो चेत्'):
-            res.register_advancement()
-            self.advance()
-
-            condition = res.register(self.expr())
-            if res.error: return res
-
-            if not self.cuurent_tok.matches(token.T_KEYWORD, 'अन्तः'):
-               return res.failure(InvalidSyntaxError(
-                   self.current_tok_pos_start, self.current_tok.pos_end,
-                   f"अपेक्षित 'अन्तः'"
-               ))
-
-            res.register_advancement()
-            self.advance()
-
-            expr = rs.register(self.expr())
-            if res.error: return res
-            cases.append((condition, expr))
-
-        if self.current_tok.matches(token.T_KEYWORD, 'चेत्'):
-            res.register_advancement()
-            self.advance()
-
-            expr = res.register(self.expr())
-            if res.error: return res
-            else_case = expr
-
-        return res.success(nodes.IfNode(cases, else_case))
+    #def if_expr(self):
+    #    res = pr.ParseResult()
+    #    cases = []
+    #    else_case = None
+    #
+    #    if not self.current_tok.matches(token.T_KEYWORD, 'यदि'):
+    #        return res.failure(InvalidSyntaxError(
+    #            self.current_tok.pos_start, self.current_tok.pos_end,
+    #            f"अपेक्षित 'यदि'"
+    #        ))
+    #
+    #    res.register_advancement()
+    #    self.advance()
+    #
+    #   condititon = res.register(self.expr())
+    #    if res.error: return res
+    #
+    #    if not self.current_tok.matches(token.T_KEYWORD, 'अन्तः'):
+    #        return res.failure(InvalidSyntaxError(
+    #            self.current_tok.pos_start, self.current_tok.pos_end,
+    #            f"अपेक्षित 'अन्तः'"
+    #        ))
+    #
+    #    res.register_advancement()
+    #    self.advance()
+    #
+    #    expr = res.register(self.expr())
+    #    if res.error: return res
+    #   cases.append((condititon, expr))
+    #
+    #    while self.current_tok.matches(token.T_KEYWORD, 'नो चेत्'):
+    #        res.register_advancement()
+    #        self.advance()
+    #
+    #        condition = res.register(self.expr())
+    #        if res.error: return res
+    #
+    #        if not self.cuurent_tok.matches(token.T_KEYWORD, 'अन्तः'):
+    #          return res.failure(InvalidSyntaxError(
+    #               self.current_tok_pos_start, self.current_tok.pos_end,
+    #               f"अपेक्षित 'अन्तः'"
+    #           ))
+    #
+    #        res.register_advancement()
+    #        self.advance()
+    #
+    #        expr = res.register(self.expr())
+    #        if res.error: return res
+    #        cases.append((condition, expr))
+    #
+    #    if self.current_tok.matches(token.T_KEYWORD, 'चेत्'):
+    #        res.register_advancement()
+    #        self.advance()
+    #
+    #        expr = res.register(self.expr())
+    #        if res.error: return res
+    #        else_case = expr
+    #
+    #     return res.success(nodes.IfNode(cases, else_case))
 
     def atom(self):
         res = pr.ParseResult()
@@ -128,11 +128,6 @@ class Parser:
                     "अपेक्षित ')'"
                 ))
 
-        elif tok.matches(token.T_KEYWORD, 'यदि'):
-            if_expr = res.register(self.if_expr())
-            if res.error: return res
-            return res.success(if_expr)
-
         return res.failure(error.InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
             "अपेक्षित अंकम्, चरः, '+', '-', वा  '('"
@@ -156,7 +151,7 @@ class Parser:
         return self.power()
 
     def term(self):
-        return self.bin_op(self.factor, (token.T_MUL, token.T_DIV))
+        return self.bin_op(self.factor, (token.T_MUL, token.T_DIV, token.T_MOD))
 
     def arith_expr(self):
         return self.bin_op(self.term, (token.T_PLUS, token.T_MINUS))

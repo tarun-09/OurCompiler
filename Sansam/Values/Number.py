@@ -38,6 +38,15 @@ class Number:
 
             return Number(self.value / other.value).set_context(self.context), None
 
+    def modulus(self, other):
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, error.RunTimeError(
+                    other.pos_start, other.pos_end, "विभाजन सह शून्य दोष", self.context
+                )
+
+            return Number(self.value % other.value).set_context(self.context), None
+
     def exponential(self, other):
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None
@@ -83,8 +92,8 @@ class Number:
         copy.set_context(self.context)
         return copy
 
-    def is_true(self):
-        return self.value != 0
+    #def is_true(self):
+    #    return self.value != 0
 
     def __repr__(self):
         return str(self.value)
