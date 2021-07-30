@@ -6,13 +6,8 @@ while True:
 
     if error:
         print(error.as_string())
-    elif result:
+    else:
         print(result)
 
+# committed
 
-# TARUN
-# Abhishek Pandey
-# mohan
-# Gaurang
-# push and pull working
-#mohan branch
