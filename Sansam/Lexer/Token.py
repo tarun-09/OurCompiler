@@ -1,3 +1,4 @@
+T_For=""
 T_INT = 'अंकम्'
 T_FLOAT = 'चरः'
 T_STRING = 'सूत्र'
