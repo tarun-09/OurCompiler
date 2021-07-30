@@ -1,5 +1,5 @@
-import Sansam.Values.Boolean as boolean
-import Sansam.Error.Errors as error
+import Values.Boolean as boolean
+import Error.Errors as error
 
 
 class Number:

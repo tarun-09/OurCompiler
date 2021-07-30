@@ -1,9 +1,9 @@
-import Sansam.Lexer.Lexer
+import Lexer.Lexer
 import Values.Number
-import Sansam.Parser.Parser
-import Sansam.Interpreter.Interpreter
+import Parser.Parser
+import Interpreter.Interpreter
 import Context
-import Sansam.Interpreter.SymbolTable as st
+import Interpreter.SymbolTable as st
 
 global_symbol_table = st.SymbolTable()
 global_symbol_table.set("लुप्तः", Values.Number.Number(0))
@@ -13,7 +13,7 @@ global_symbol_table.set("सत्यम्", Values.Number.Number(1))
 
 def run(fn, text):
     # Generate tokens
-    lexer = Sansam.Lexer.Lexer.Lexer(fn, text)
+    lexer = Lexer.Lexer.Lexer(fn, text)
     tokens, error = lexer.make_tokens()
     if error:
         return None, error

@@ -1,7 +1,7 @@
-import Sansam.Parser.ParseResult as pr
-import Sansam.Parser.Nodes as nodes
-import Sansam.Error.Errors as error
-import Sansam.Lexer.Token as token
+import Parser.ParseResult as pr
+import Parser.Nodes as nodes
+import Error.Errors as error
+import Lexer.Token as token
 
 
 class Parser:

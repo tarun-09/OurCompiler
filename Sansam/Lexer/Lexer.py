@@ -1,6 +1,6 @@
-import Sansam.Lexer.Token as token
-import Sansam.Position
-import Sansam.Error.Errors as errors
+import Lexer.Token as token
+import Position
+import Error.Errors as errors
 
 DIGITS = '0123456789'
 LETTERS = "ंःऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऺऻ़ऽािीुूृॄॅॆेैॉॊोौ्"
@@ -11,7 +11,7 @@ class Lexer:
     def __init__(self, fn, text):
         self.fn = fn
         self.text = text
-        self.pos = Sansam.Position.Position(-1, 0, -1, fn, text)
+        self.pos = Position.Position(-1, 0, -1, fn, text)
         self.current_char = None
         self.advance()
 

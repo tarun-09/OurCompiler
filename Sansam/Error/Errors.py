@@ -1,4 +1,4 @@
-import Sansam.Error.Error_String_With_Arrows as error_str
+import Error.Error_String_With_Arrows as error_str
 
 
 class Error:

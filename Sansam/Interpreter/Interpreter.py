@@ -1,8 +1,8 @@
-import Sansam.Interpreter.RunTimeResult as rtr
-import Sansam.Error.Errors as errors
-import Sansam.Values.Number as num
-import Sansam.Lexer.Token as token
-import Sansam.Values.Boolean as boolean
+import Interpreter.RunTimeResult as rtr
+import Error.Errors as errors
+import Values.Number as num
+import Lexer.Token as token
+import Values.Boolean as boolean
 
 
 class Interpreter:
