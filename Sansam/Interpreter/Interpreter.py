@@ -127,3 +127,27 @@ class Interpreter:
             return res.failure(error)
         else:
             return res.success(number.set_pos(Node.pos_start, Node.pos_end))
+
+    def visit_FactorialNode(self,Node,context):
+        res = rtr.RunTimeResult()
+        factorial = res.register(self.visit(Node.node, context))
+        if res.error:
+            return res
+
+        error = None
+
+        # def Factorial(fact):
+        #     if fact.get_comparison_eq(0):
+        #          return num.
+        #     # print()
+        #     # Factorial(fact.subtraction(1)).multiplication(fact)
+        #     print(fact)
+        #     return fact.subtraction(num.Number(1))
+
+        if Node.op_tok.type == token.T_FACT:
+            factorial,error = factorial.factorial()
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(factorial.set_pos(Node.pos_start, Node.pos_end))
+

@@ -23,6 +23,7 @@ T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
 T_COMMA	= ','
+T_FACT = 'T_FACT'
 
 KEYWORDS = [
     'च', 'वा', 'न', 'असत्यम्', 'सत्यम्'
