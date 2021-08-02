@@ -79,6 +79,7 @@ class Parser:
         return res.failure(error.InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
             "अपेक्षित अंकम्, चरः, '+', '-','!*', '[', वा  '('"
+
         ))
 
     def list_expr(self):
@@ -221,7 +222,9 @@ class Parser:
         if res.error:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
+
                 "अपेक्षित अंकम्, चरः, identifier, '+', '-', '[' वा '('"
+
             ))
 
         return res.success(node)
