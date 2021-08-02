@@ -75,9 +75,11 @@ class Parser:
             if res.error: return res
             return res.success(list_expr)
 
+
         return res.failure(error.InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "अपेक्षित अंकम्, चरः, '+', '-','[', वा  '('"
+            "अपेक्षित अंकम्, चरः, '+', '-','!*', '[', वा  '('"
+
         ))
 
     def list_expr(self):
@@ -115,7 +117,7 @@ class Parser:
             if self.current_tok.type != token.T_RSQUARE:
                 return res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित ',' or ']'"
+                    f"अपेक्षित ',' वा ']'"
                 ))
 
             res.register_advancement()
@@ -127,8 +129,27 @@ class Parser:
             self.current_tok.pos_end.copy()
         ))
 
+    def factorial(self):
+        res = pr.ParseResult()
+        tok = self.current_tok
+
+        if tok.type in (token.T_INT, token.T_IDENTIFIER):
+            node = res.register(self.atom())
+            if res.error:
+                return res
+            if self.current_tok.type == token.T_FACT:
+                tok = self.current_tok
+                res.register_advancement()
+                self.advance()
+                return res.success(nodes.FactorialNode(node, tok))
+            return res.success(node)
+
+
+        return self.atom()
+
     def power(self):
-        return self.bin_op(self.atom, (token.T_POW,), self.factor)
+        return self.bin_op(self.factorial, (token.T_POW,), self.factor)
+
 
     def factor(self):
         res = pr.ParseResult()
@@ -201,7 +222,9 @@ class Parser:
         if res.error:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित अंकम्, चरः, identifier, '+', '-' '[' वा '('"
+
+                "अपेक्षित अंकम्, चरः, identifier, '+', '-', '[' वा '('"
+
             ))
 
         return res.success(node)
