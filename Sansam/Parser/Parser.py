@@ -36,66 +36,6 @@ class Parser:
 
 ############################################
 
-    #def if_expr(self):
-    #    res = pr.ParseResult()
-    #    cases = []
-    #    else_case = None
-    #
-    #    if not self.current_tok.matches(token.T_KEYWORD, 'यदि'):
-    #        return res.failure(InvalidSyntaxError(
-    #            self.current_tok.pos_start, self.current_tok.pos_end,
-    #            f"अपेक्षित 'यदि'"
-    #        ))
-    #
-    #    res.register_advancement()
-    #    self.advance()
-    #
-    #   condititon = res.register(self.expr())
-    #    if res.error: return res
-    #
-    #    if not self.current_tok.matches(token.T_KEYWORD, 'अन्तः'):
-    #        return res.failure(InvalidSyntaxError(
-    #            self.current_tok.pos_start, self.current_tok.pos_end,
-    #            f"अपेक्षित 'अन्तः'"
-    #        ))
-    #
-    #    res.register_advancement()
-    #    self.advance()
-    #
-    #    expr = res.register(self.expr())
-    #    if res.error: return res
-    #   cases.append((condititon, expr))
-    #
-    #    while self.current_tok.matches(token.T_KEYWORD, 'नो चेत्'):
-    #        res.register_advancement()
-    #        self.advance()
-    #
-    #        condition = res.register(self.expr())
-    #        if res.error: return res
-    #
-    #        if not self.cuurent_tok.matches(token.T_KEYWORD, 'अन्तः'):
-    #          return res.failure(InvalidSyntaxError(
-    #               self.current_tok_pos_start, self.current_tok.pos_end,
-    #               f"अपेक्षित 'अन्तः'"
-    #           ))
-    #
-    #        res.register_advancement()
-    #        self.advance()
-    #
-    #        expr = res.register(self.expr())
-    #        if res.error: return res
-    #        cases.append((condition, expr))
-    #
-    #    if self.current_tok.matches(token.T_KEYWORD, 'चेत्'):
-    #        res.register_advancement()
-    #        self.advance()
-    #
-    #        expr = res.register(self.expr())
-    #        if res.error: return res
-    #        else_case = expr
-    #
-    #     return res.success(nodes.IfNode(cases, else_case))
-
     def atom(self):
         res = pr.ParseResult()
         tok = self.current_tok
@@ -188,8 +128,25 @@ class Parser:
             self.current_tok.pos_end.copy()
         ))
 
+    def factorial(self):
+        res = pr.ParseResult()
+        tok = self.current_tok
+
+        if tok.type in (token.T_INT, token.T_IDENTIFIER):
+            node = res.register(self.atom())
+            if res.error:
+                return res
+            if self.current_tok.type == token.T_FACT:
+                tok = self.current_tok
+                res.register_advancement()
+                self.advance()
+                return res.success(nodes.FactorialNode(node, tok))
+            return res.success(node)
+
+        return self.atom()
+
     def power(self):
-        return self.bin_op(self.atom, (token.T_POW,), self.factor)
+        return self.bin_op(self.factorial, (token.T_POW,), self.factor)
 
     def factor(self):
         res = pr.ParseResult()
@@ -329,4 +286,3 @@ class Parser:
             left = nodes.BinOpNode(left, op_tok, right)
 
         return res.success(left)
-
