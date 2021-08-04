@@ -25,14 +25,9 @@ class Lexer:
         while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
-            elif self.current_char == '\n':
+            elif self.current_char == '\n' or self.current_char == '\r':
                 tokens.append(token.Token(token.T_NL, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == '\r':
-                tokens.append(token.Token(token.T_NL, pos_start=self.pos))
-                self.advance()
-                if self.current_char == '\n':
-                    self.advance()
             elif self.current_char == '"':
                 tokens.append(self.make_string())
             elif self.current_char in DIGITS:
@@ -139,7 +134,8 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             tok_type = token.T_ISNEQ
-        elif self.current_char == '*':
+
+        if self.current_char == '*':
             self.advance()
             tok_type = token.T_FACT
 

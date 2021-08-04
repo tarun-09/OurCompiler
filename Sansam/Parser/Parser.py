@@ -36,66 +36,6 @@ class Parser:
 
 ############################################
 
-    #def if_expr(self):
-    #    res = pr.ParseResult()
-    #    cases = []
-    #    else_case = None
-    #
-    #    if not self.current_tok.matches(token.T_KEYWORD, 'यदि'):
-    #        return res.failure(InvalidSyntaxError(
-    #            self.current_tok.pos_start, self.current_tok.pos_end,
-    #            f"अपेक्षित 'यदि'"
-    #        ))
-    #
-    #    res.register_advancement()
-    #    self.advance()
-    #
-    #   condititon = res.register(self.expr())
-    #    if res.error: return res
-    #
-    #    if not self.current_tok.matches(token.T_KEYWORD, 'अन्तः'):
-    #        return res.failure(InvalidSyntaxError(
-    #            self.current_tok.pos_start, self.current_tok.pos_end,
-    #            f"अपेक्षित 'अन्तः'"
-    #        ))
-    #
-    #    res.register_advancement()
-    #    self.advance()
-    #
-    #    expr = res.register(self.expr())
-    #    if res.error: return res
-    #   cases.append((condititon, expr))
-    #
-    #    while self.current_tok.matches(token.T_KEYWORD, 'नो चेत्'):
-    #        res.register_advancement()
-    #        self.advance()
-    #
-    #        condition = res.register(self.expr())
-    #        if res.error: return res
-    #
-    #        if not self.cuurent_tok.matches(token.T_KEYWORD, 'अन्तः'):
-    #          return res.failure(InvalidSyntaxError(
-    #               self.current_tok_pos_start, self.current_tok.pos_end,
-    #               f"अपेक्षित 'अन्तः'"
-    #           ))
-    #
-    #        res.register_advancement()
-    #        self.advance()
-    #
-    #        expr = res.register(self.expr())
-    #        if res.error: return res
-    #        cases.append((condition, expr))
-    #
-    #    if self.current_tok.matches(token.T_KEYWORD, 'चेत्'):
-    #        res.register_advancement()
-    #        self.advance()
-    #
-    #        expr = res.register(self.expr())
-    #        if res.error: return res
-    #        else_case = expr
-    #
-    #     return res.success(nodes.IfNode(cases, else_case))
-
     def atom(self):
         res = pr.ParseResult()
         tok = self.current_tok
