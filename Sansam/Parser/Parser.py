@@ -33,34 +33,6 @@ class Parser:
             ))
         return res
 
-    def while_expr(self):
-        res=pr.ParseResult()
-
-        if not self.current_tok.matches(token.T_KEYWORD,"यावद्"):
-            return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start
-                ,self.current_tok.pos_end,
-                f"अपेक्षित  'यावद्' "))
-
-        res.register_advancement()
-        self.advance()
-
-        condition=res.register(self.expr())
-        if res.error: return res
-
-        if not self.current_tok.matches(token.T_KEYWORD,'~'):
-            return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start
-                ,self.current_tok.pos_end,
-                f"अपेक्षित '~' "))
-        res.register_advancement()
-        self.advance()
-
-        body=res.register(self.expr())
-        if res.error: return res
-
-        return res.success(nodes.WhileNode(condition, body))
-
     ###################################
 
     def atom(self):
