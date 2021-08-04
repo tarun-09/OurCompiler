@@ -11,3 +11,4 @@ with codecs.open("D:\\program.txt", encoding='utf-8') as p:
     else:
         print(result)
 
+#jkkjnvl
