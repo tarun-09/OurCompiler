@@ -74,10 +74,6 @@ class Parser:
             list_expr = res.register(self.list_expr())
             if res.error: return res
             return res.success(list_expr)
-        elif tok.matches (token.T_KEYWORD,"यावद्"):
-            while_expr=res.register(self.while_expr())
-            if res.error: return res
-            return res.success(while_expr)
 
         return res.failure(error.InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
