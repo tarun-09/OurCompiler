@@ -8,7 +8,7 @@ comp_expr       : (KEYWORD:'न'| NOT) comp-expr
 
 arith_expr      : term ((PLUS|MINUS) term)*
 
-term            : factor ((MUL|DIV) factor)*
+term            : factor ((MUL|DIV|MOD) factor)*
 
 factor          : (PLUS|MINUS) factor
                 : power
@@ -22,3 +22,4 @@ atom            : INT|FLOAT|STRING|IDENTIFIER
                 : list-expr
 
 list-expr       : LSQUARE (expr (COMMA expr)*)? RSQUARE
+

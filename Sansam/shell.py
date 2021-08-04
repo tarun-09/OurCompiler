@@ -10,3 +10,4 @@ with codecs.open("C:\\Users\\vaibhav goel\\Desktop\\firstprogram.txt", encoding=
         print(error.as_string())
     else:
         print(result)
+
