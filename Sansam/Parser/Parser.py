@@ -269,4 +269,3 @@ class Parser:
             left = nodes.BinOpNode(left, op_tok, right)
 
         return res.success(left)
-
