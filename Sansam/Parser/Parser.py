@@ -1,3 +1,4 @@
+
 import Sansam.Parser.ParseResult as pr
 import Sansam.Parser.Nodes as nodes
 import Sansam.Error.Errors as error
@@ -268,3 +269,4 @@ class Parser:
             left = nodes.BinOpNode(left, op_tok, right)
 
         return res.success(left)
+

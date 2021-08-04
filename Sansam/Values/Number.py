@@ -39,6 +39,11 @@ class Number(val.Value):
         else:
             return None, val.Value.illegal_operation(self, other)
 
+    def factorial(self):
+        return Number(math.factorial(self.value)).set_context(self.context),None
+
+
+
     def exponential(self, other):
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None

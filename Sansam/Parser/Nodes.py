@@ -1,3 +1,4 @@
+
 class NumberNode:
     def __init__(self, tok):
         self.tok = tok
@@ -75,3 +76,4 @@ class UnaryOpNode:
 
     def __repr__(self):
         return f'({self.op_tok}, {self.node})'
+
