@@ -138,14 +138,6 @@ class Interpreter:
 
         error = None
 
-        # def Factorial(fact):
-        #     if fact.get_comparison_eq(0):
-        #          return num.
-        #     # print()
-        #     # Factorial(fact.subtraction(1)).multiplication(fact)
-        #     print(fact)
-        #     return fact.subtraction(num.Number(1))
-
         if Node.op_tok.type == token.T_FACT:
             factorial,error = factorial.factorial()
         if error:

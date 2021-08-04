@@ -128,8 +128,25 @@ class Parser:
             self.current_tok.pos_end.copy()
         ))
 
+    def factorial(self):
+        res = pr.ParseResult()
+        tok = self.current_tok
+
+        if tok.type in (token.T_INT, token.T_IDENTIFIER):
+            node = res.register(self.atom())
+            if res.error:
+                return res
+            if self.current_tok.type == token.T_FACT:
+                tok = self.current_tok
+                res.register_advancement()
+                self.advance()
+                return res.success(nodes.FactorialNode(node, tok))
+            return res.success(node)
+
+        return self.atom()
+
     def power(self):
-        return self.bin_op(self.atom, (token.T_POW,), self.factor)
+        return self.bin_op(self.factorial, (token.T_POW,), self.factor)
 
     def factor(self):
         res = pr.ParseResult()
