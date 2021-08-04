@@ -87,6 +87,8 @@ class Interpreter:
             result, error = left.multiplication(right)
         elif node.op_tok.type == token.T_DIV:
             result, error = left.division(right)
+        elif node.op_tok.type == token.T_MOD:
+            result, error = left.modulus(right)
         elif node.op_tok.type == token.T_POW:
             result, error = left.exponential(right)
         elif node.op_tok.type == token.T_ISEQ:

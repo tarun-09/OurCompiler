@@ -44,6 +44,15 @@ class Number(val.Value):
 
 
 
+    def modulus(self, other):
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, error.RunTimeError(
+                    other.pos_start, other.pos_end, "विभाजन सह शून्य दोष", self.context
+                )
+
+            return Number(self.value % other.value).set_context(self.context), None
+
     def exponential(self, other):
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None

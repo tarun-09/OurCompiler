@@ -5,6 +5,7 @@ T_PLUS = 'योजनम्'
 T_MINUS = 'ऊन'
 T_MUL = 'गुणता'
 T_DIV = 'भेद'
+T_MOD = 'प्रतिशत'
 T_EOF = 'समन्त'
 T_KEYWORD = "आरक्षितपद"
 T_IDENTIFIER = "नामन्"
