@@ -1,3 +1,4 @@
+
 class NumberNode:
     def __init__(self, tok):
         self.tok = tok
@@ -7,6 +8,24 @@ class NumberNode:
 
     def __repr__(self):
         return f'{self.tok}'
+
+
+class StringNode:
+    def __init__(self, tok):
+        self.tok = tok
+
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
+
+    def __repr__(self):
+        return f'{self.tok}'
+
+
+class ListNode:
+    def __init__(self, element_nodes, pos_start, pos_end):
+        self.element_nodes = element_nodes
+        self.pos_start = pos_start
+        self.pos_end = pos_end
 
 
 class BooleanNode:

@@ -25,6 +25,16 @@ class Lexer:
         while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
+            elif self.current_char == '\n':
+                tokens.append(token.Token(token.T_NL, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '\r':
+                tokens.append(token.Token(token.T_NL, pos_start=self.pos))
+                self.advance()
+                if self.current_char == '\n':
+                    self.advance()
+            elif self.current_char == '"':
+                tokens.append(self.make_string())
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
             elif self.current_char in LETTERS:
@@ -60,6 +70,15 @@ class Lexer:
                 self.advance()
             elif self.current_char == ')':
                 tokens.append(token.Token(token.T_RPAREN, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '[':
+                tokens.append(token.Token(token.T_LSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ']':
+                tokens.append(token.Token(token.T_RSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ',':
+                tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
                 self.advance()
             else:
                 pos_start = self.pos.copy()
@@ -120,6 +139,9 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             tok_type = token.T_ISNEQ
+        elif self.current_char == '*':
+            self.advance()
+            tok_type = token.T_FACT
 
         return token.Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
@@ -144,3 +166,29 @@ class Lexer:
             tok_type = token.T_ISLEQ
 
         return token.Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_string(self):
+        string = ''
+        pos_start = self.pos.copy()
+        escape_character = False
+        self.advance()
+
+        escape_characters = {
+            'n': '\n',
+            't': '\t'
+        }
+
+        while self.current_char is not None and (self.current_char != '"' or escape_character):
+            if escape_character:
+                string += escape_characters.get(self.current_char, self.current_char)
+            else:
+                if self.current_char == '\\':
+                    escape_character = True
+                else:
+                    string += self.current_char
+            self.advance()
+            escape_character = False
+
+        self.advance()
+        return token.Token(token.T_STRING, string, pos_start=pos_start, pos_end=self.pos)
+

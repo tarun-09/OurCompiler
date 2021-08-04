@@ -1,14 +1,14 @@
 import Sansam.Lexer.Lexer
-import Values.Number
+import Sansam.Values.Number
 import Sansam.Parser.Parser
 import Sansam.Interpreter.Interpreter
-import Context
+import Sansam.Context
 import Sansam.Interpreter.SymbolTable as st
 
 global_symbol_table = st.SymbolTable()
-global_symbol_table.set("लुप्तः", Values.Number.Number(0))
-global_symbol_table.set("असत्यम्", Values.Number.Number(0))
-global_symbol_table.set("सत्यम्", Values.Number.Number(1))
+global_symbol_table.set("लुप्तः", Sansam.Values.Number.null)
+global_symbol_table.set("असत्यम्", Sansam.Values.Number.false)
+global_symbol_table.set("सत्यम्", Sansam.Values.Number.true)
 
 
 def run(fn, text):
@@ -26,8 +26,9 @@ def run(fn, text):
 
     # Run program
     interpreter = Sansam.Interpreter.Interpreter.Interpreter()
-    context = Context.Context('<program>')
+    context = Sansam.Context.Context('<program>')
     context.symbol_table = global_symbol_table
     result = interpreter.visit(ast.node, context)
 
     return result.value, result.error
+    # return tokens, error

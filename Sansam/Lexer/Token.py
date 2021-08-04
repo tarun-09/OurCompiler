@@ -1,16 +1,20 @@
 T_INT = 'अंकम्'
 T_FLOAT = 'चरः'
+T_STRING = 'सूत्र'
 T_PLUS = 'योजनम्'
 T_MINUS = 'ऊन'
 T_MUL = 'गुणता'
 T_DIV = 'भेद'
 T_MOD = 'प्रतिशत'
-T_POW = '^'
-T_LPAREN = '('
-T_RPAREN = ')'
 T_EOF = 'समन्त'
 T_KEYWORD = "आरक्षितपद"
 T_IDENTIFIER = "नामन्"
+T_NL = 'नवीन् पङ्क्ति'
+T_POW = '^'
+T_LPAREN = '('
+T_RPAREN = ')'
+T_LSQUARE = '['
+T_RSQUARE = ']'
 T_EQU = "="
 T_ISNEQ = '!='
 T_ISEQ = '=='
@@ -19,6 +23,8 @@ T_ISL = '<'
 T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
+T_COMMA	= ','
+T_FACT = 'T_FACT'
 
 KEYWORDS = [
     'च', 'वा', 'न', 'असत्यम्', 'सत्यम्'

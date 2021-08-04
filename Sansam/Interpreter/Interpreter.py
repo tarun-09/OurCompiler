@@ -3,6 +3,8 @@ import Sansam.Error.Errors as errors
 import Sansam.Values.Number as num
 import Sansam.Lexer.Token as token
 import Sansam.Values.Boolean as boolean
+import Sansam.Values.String as string
+import Sansam.Values.List as list
 
 
 class Interpreter:
@@ -19,6 +21,23 @@ class Interpreter:
     def visit_NumberNode(self, node, context):
         return rtr.RunTimeResult().success(
             num.Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_StringNode(self, node, context):
+        return rtr.RunTimeResult().success(
+            string.String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_ListNode(self, node, context):
+        res = rtr.RunTimeResult()
+        elements = []
+
+        for element_node in node.element_nodes:
+            elements.append(res.register(self.visit(element_node, context)))
+            if res.error: return res
+
+        return res.success(
+            list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
     def visit_BooleanNode(self, node, context):
@@ -111,20 +130,26 @@ class Interpreter:
         else:
             return res.success(number.set_pos(Node.pos_start, Node.pos_end))
 
-    #def visit_IfNode(self, node, context):
-    #    res = rtr.RunTimeResult()
-    #
-    #    for condition, expr in node.cases:
-    #        condition_value = res.register( self.visit(condition, context))
-    #        if res.error: return res
-    #
-    #        if condition_value.is_true():
-    #            else_value  = res.register(self.visit(expr, context))
-    #            if res.error: return res
-    #            return res.success(else_value)
-    #    if node.else_case:
-    #        else_value = res.register(self.visit(node.else_case, context))
-    #        if res.error: return res
-    #        return res.success(else_value)
-    #
-    #    return res.success(None)
+    def visit_FactorialNode(self,Node,context):
+        res = rtr.RunTimeResult()
+        factorial = res.register(self.visit(Node.node, context))
+        if res.error:
+            return res
+
+        error = None
+
+        # def Factorial(fact):
+        #     if fact.get_comparison_eq(0):
+        #          return num.
+        #     # print()
+        #     # Factorial(fact.subtraction(1)).multiplication(fact)
+        #     print(fact)
+        #     return fact.subtraction(num.Number(1))
+
+        if Node.op_tok.type == token.T_FACT:
+            factorial,error = factorial.factorial()
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(factorial.set_pos(Node.pos_start, Node.pos_end))
+
