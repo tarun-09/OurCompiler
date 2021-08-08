@@ -40,6 +40,39 @@ class Interpreter:
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
+    def visit_ForNode(self, node, context):
+        res = rtr.RunTimeResult()
+        start_value = res.register(self.visit(node.start_value_node, context))
+        if res.error:
+            return res
+        end_value = res.register(self.visit(node.end_value_node, context))
+        if res.error:
+            return res
+        step_value = res.register(self.visit(node.step_value_node, context))
+        if res.error:
+            return res
+        # if node.step_value_node:
+        #     step_value=res.register(self.visit(node.step_value_node,context))
+        #     if res.error:
+        #         return res
+        #     else:
+        #         step_value=num.Number(1)
+
+        i = start_value.value
+        if step_value.value >= 0:
+            condition = lambda: i < end_value.value
+        else:
+            condition = lambda: i > end_value.value
+
+        while condition():
+            context.symbol_table.set(node.var_name_tok.value, num.Number(i))
+            i += step_value.value
+
+            res.register(self.visit(node.body_node, context))
+            if res.error:
+                return res
+        return res.success(None)
+
     def visit_BooleanNode(self, node, context):
         return rtr.RunTimeResult().success(
             boolean.Boolean(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
@@ -130,7 +163,7 @@ class Interpreter:
         else:
             return res.success(number.set_pos(Node.pos_start, Node.pos_end))
 
-    def visit_FactorialNode(self,Node,context):
+    def visit_FactorialNode(self, Node, context):
         res = rtr.RunTimeResult()
         factorial = res.register(self.visit(Node.node, context))
         if res.error:
@@ -139,9 +172,8 @@ class Interpreter:
         error = None
 
         if Node.op_tok.type == token.T_FACT:
-            factorial,error = factorial.factorial()
+            factorial, error = factorial.factorial()
         if error:
             return res.failure(error)
         else:
             return res.success(factorial.set_pos(Node.pos_start, Node.pos_end))
-
