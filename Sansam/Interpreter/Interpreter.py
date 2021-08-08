@@ -130,7 +130,7 @@ class Interpreter:
         else:
             return res.success(number.set_pos(Node.pos_start, Node.pos_end))
 
-    def visit_FactorialNode(self,Node,context):
+    def visit_FactorialNode(self, Node, context):
         res = rtr.RunTimeResult()
         factorial = res.register(self.visit(Node.node, context))
         if res.error:
@@ -139,9 +139,24 @@ class Interpreter:
         error = None
 
         if Node.op_tok.type == token.T_FACT:
-            factorial,error = factorial.factorial()
+            factorial, error = factorial.factorial()
         if error:
             return res.failure(error)
         else:
             return res.success(factorial.set_pos(Node.pos_start, Node.pos_end))
 
+    def visit_WhileNode(self, node, context):
+        res = rtr.RunTimeResult()
+
+        while True:
+            condition = res.register(self.visit(node.condition_node, context))
+            if res.error:
+                return res
+
+            if not condition.is_true(): break
+
+            res.register(self.visit(node.body_node, context))
+            if res.error:
+                return res
+
+        return res.success(None)
