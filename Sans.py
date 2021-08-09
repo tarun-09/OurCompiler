@@ -751,7 +751,7 @@ class Boolean:
         return copy
 
     def is_true(self):
-        return self.boolean != 'असत्यम्'
+        return self.boolean != 0
     def __repr__(self):
         if self.boolean:
             return str("सत्यम्")
