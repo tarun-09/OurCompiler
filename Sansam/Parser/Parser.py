@@ -1,4 +1,3 @@
-
 import Sansam.Parser.ParseResult as pr
 import Sansam.Parser.Nodes as nodes
 import Sansam.Error.Errors as error
@@ -34,7 +33,7 @@ class Parser:
             ))
         return res
 
-############################################
+    ############################################
 
     def atom(self):
         res = pr.ParseResult()
@@ -54,8 +53,8 @@ class Parser:
             res.register_advancement()
             self.advance()
             return res.success(nodes.BooleanNode(tok))
-        elif tok.matches(token.T_KEYWORD,"प्रति"):
-            for_expr=res.register(self.for_expr())
+        elif tok.matches(token.T_KEYWORD, "प्रति"):
+            for_expr = res.register(self.for_expr())
             if res.error: return res
             return res.success(for_expr)
 
@@ -84,81 +83,102 @@ class Parser:
             tok.pos_start, tok.pos_end,
             "अपेक्षित अंकम्, चरः, '+', '-','[', वा  '('"
         ))
+
     def for_expr(self):
 
-        res=pr.ParseResult()
+        res = pr.ParseResult()
         pos_start = self.current_tok.pos_start.copy()
 
-        if not self.current_tok.matches(token.T_KEYWORD,"प्रति"):
+        if not self.current_tok.matches(token.T_KEYWORD, "प्रति"):
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Expected "प्रति"'
             ))
 
         res.register_advancement()
         self.advance()
 
-        if self.current_tok.type!=token.T_LPAREN:
+        if self.current_tok.type != token.T_LPAREN:
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,f'Expected "("'
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Expected "("'
             ))
         res.register_advancement()
         self.advance()
 
-        if self.current_tok.type != token.T_IDENTIFIER:
+        if self.current_tok.type == token.T_IDENTIFIER:
+            var_name = self.current_tok
+            res.register_advancement()
+            self.advance()
+            if self.current_tok.type==token.T_COMMA:
+                start_value=None
+            elif self.current_tok.type == token.T_EQU:
+                res.register_advancement()
+                self.advance()
+
+                start_value = res.register(self.expr())
+                if res.error:
+                    return res
+            else:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f'Expected "="'
+                ))
+
+        else:
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 f"Expected 'नामन्'"
             ))
 
-        var_name=self.current_tok
-        res.register_advancement()
-        self.advance()
+        # var_name = self.current_tok
+        # res.register_advancement()
+        # self.advance()
 
-        if self.current_tok.type !=token.T_EQU:
+        #if self.current_tok.type != token.T_EQU:
+
+
+
+        if self.current_tok.type != token.T_COMMA:
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
-                f'Expected "="'
-            ))
-        res.register_advancement()
-        self.advance()
-        start_value=res.register(self.expr())
-        if res.error:
-            return res
-        if self.current_tok.type!=token.T_COMMA:
-            return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Missing ","'
             ))
         res.register_advancement()
         self.advance()
-        end_point=res.register(self.expr())
+        end_point = res.register(self.expr())
         if res.error:
             return res
-        if self.current_tok.type!=token.T_COMMA:
+        if self.current_tok.type == token.T_COMMA:
+            res.register_advancement()
+            self.advance()
+
+            if self.current_tok.type == token.T_RPAREN:
+                step_value = None
+
+            else:
+
+                step_value = res.register(self.expr())
+                res.register_advancement()
+                # self.advance()
+
+        else:
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Missing ","'
             ))
-        res.register_advancement()
-        self.advance()
-
-        step_value=res.register(self.expr())
-       # print(step_value)
-        if res.error:return res
-        # else:
-        #     step_value=None
-
-        if self.current_tok.type!=token.T_RPAREN:
+        if self.current_tok.type != token.T_RPAREN:
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Missing ")"'
             ))
+
         res.register_advancement()
         self.advance()
+
         if self.current_tok.type != token.T_THEN:
             return res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start,self.current_tok.pos_end,
+                self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Missing "~"'
             ))
         res.register_advancement()
@@ -169,16 +189,16 @@ class Parser:
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Expression start in New Line'
             ))
+
         res.register_advancement()
         self.advance()
 
-        body=res.register(self.expr())
+        body = res.register(self.expr())
+
         if res.error:
             return res
-        return res.success(nodes.ForNode(var_name,start_value,end_point,step_value,body))
 
-
-
+        return res.success(nodes.ForNode(var_name, start_value, end_point, step_value, body))
 
     def list_expr(self):
         res = pr.ParseResult()

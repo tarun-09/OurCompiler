@@ -25,7 +25,7 @@ T_ISL = '<'
 T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
-T_COMMA	= ','
+T_COMMA	= ';'
 T_FACT = 'T_FACT'
 
 KEYWORDS = [
