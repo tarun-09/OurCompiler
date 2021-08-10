@@ -17,17 +17,22 @@ term                : factor ((MUL|DIV|MOD) factor)*
 factor              : (PLUS|MINUS) factor
                     : power
 
-power               : atom (POW factor)*
+power               : factorial (POW factor)*
 
-factorial           : atom (factor)
+factorial           : call (FACTORIAL)
+
+call                : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
 atom                : INT|FLOAT|STRING|IDENTIFIER
                     : LPAREN expr RPAREN
                     : list-expr
                     : while-expr
+                    : func-def
 
 list-expr           : LSQUARE (expr (COMMA expr)*)? RSQUARE
 
-while-expr          : KEYWORD:'यावद्' expr T_THEN
+while-expr          : KEYWORD:'यावद्' expr THEN
                       (NewLine indent_statements)
 
+func-def            : KEYWORD:'कार्य' IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN THEN
+                      (NewLine indent_statements)
