@@ -162,6 +162,7 @@ class Interpreter:
 
         return res.success(None)
 
+
     def visit_FuncDefNode(self, node, context):
         res = rtr.RunTimeResult()
 
@@ -196,4 +197,23 @@ class Interpreter:
             return res
         return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(return_value)
+
+    def visit_IfNode(self, node, context):
+        res = rtr.RunTimeResult()
+
+        for condition, expr in node.cases:
+            condition_value = res.register(self.visit(condition, context))
+            if res.error: return res
+
+            if condition_value.is_true():
+                expr_value = res.register(self.visit(expr, context))
+                if res.error: return res
+                return res.success(expr_value)
+
+        if node.else_case:
+            else_value = res.register(self.visit(node.else_case, context))
+            if res.error: return res
+            return res.success(else_value)
+
+        return res.success(None)
 
