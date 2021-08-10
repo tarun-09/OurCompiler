@@ -118,7 +118,7 @@ T_ISLEQ = '<='
 T_NOT = '!'
 
 KEYWORDS = [
-    'च', 'वा', 'न', 'असत्यम्', 'सत्यम्', 'यदि', 'नो चेत्', 'चेत्', 'तदा'
+    'च', 'वा', 'न', 'असत्यम्', 'सत्यम्', 'यदि', 'नोचेत्', 'चेत्', 'तदा'
 ]
 
 
@@ -444,7 +444,7 @@ class Parser:
         if res.error: return res
         cases.append((condition, expr))
 
-        while self.current_tok.matches(T_KEYWORD, 'नो चेत्'):
+        while self.current_tok.matches(T_KEYWORD, 'नोचेत्'):
             res.register_advancement()
             self.advance()
 
