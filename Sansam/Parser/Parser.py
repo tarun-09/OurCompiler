@@ -35,6 +35,88 @@ class Parser:
 
     ############################################
 
+    def func_def(self):
+        res = pr.ParseResult()
+
+        if not self.current_tok.matches(token.T_KEYWORD, 'कार्य'):
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित 'कार्य'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == token.T_IDENTIFIER:
+            var_name_tok = self.current_tok
+            res.register_advancement()
+            self.advance()
+
+            if self.current_tok.type != token.T_LPAREN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित '('"
+                ))
+        else:
+            var_name_tok = None
+            if self.current_tok.type != token.T_LPAREN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित identifier वा '('"
+                ))
+
+        res.register_advancement()
+        self.advance()
+        arg_name_tokens = []
+
+        if self.current_tok.type == token.T_IDENTIFIER:
+            arg_name_tokens.append(self.current_tok)
+            res.register_advancement()
+            self.advance()
+
+            while self.current_tok.type == token.T_COMMA:
+                res.register_advancement()
+                self.advance()
+
+                if self.current_tok.type != token.T_IDENTIFIER:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        f"अपेक्षित identifier"
+                    ))
+
+                arg_name_tokens.append(self.current_tok)
+                res.register_advancement()
+                self.advance()
+
+            if self.current_tok.type != token.T_RPAREN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित ',' वा ')'"
+                ))
+        else:
+            if self.current_tok.type != token.T_RPAREN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित identifier वा ')'"
+                ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == token.T_THEN:
+            res.register_advancement()
+            self.advance()
+
+            body = res.register(self.indent_statements())
+            if res.error:
+                return res
+
+            return res.success(nodes.FuncDefNode(
+                var_name_tok,
+                arg_name_tokens,
+                body
+            ))
+
     def while_expr(self):
         res = pr.ParseResult()
         pos_start = self.current_tok.pos_start.copy()
@@ -164,6 +246,12 @@ class Parser:
                 return res
             return res.success(while_expr)
 
+        elif tok.matches(token.T_KEYWORD, 'कार्य'):
+            func_def = res.register(self.func_def())
+            if res.error:
+                return res
+            return res.success(func_def)
+
         elif tok.type == token.T_LSQUARE:
             list_expr = res.register(self.list_expr())
             if res.error:
@@ -175,12 +263,53 @@ class Parser:
             "अपेक्षित अंकम्, चरः, '+', '-','[', वा  '('"
         ))
 
+    def call(self):
+        res = pr.ParseResult()
+        atom = res.register(self.atom())
+        if res.error:
+            return res
+
+        if self.current_tok.type == token.T_LPAREN:
+            res.register_advancement()
+            self.advance()
+            arg_nodes = []
+
+            if self.current_tok.type == token.T_RPAREN:
+                res.register_advancement()
+                self.advance()
+            else:
+                arg_nodes.append(res.register(self.expr()))
+                if res.error:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित ')', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', "
+                        "'[' or 'NOT' "
+                    ))
+
+                while self.current_tok.type == token.T_COMMA:
+                    res.register_advancement()
+                    self.advance()
+
+                    arg_nodes.append(res.register(self.expr()))
+                    if res.error: return res
+
+                if self.current_tok.type != token.T_RPAREN:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        f"अपेक्षित ',' or ')'"
+                    ))
+
+                res.register_advancement()
+                self.advance()
+            return res.success(nodes.CallNode(atom, arg_nodes))
+        return res.success(atom)
+
     def factorial(self):
         res = pr.ParseResult()
         tok = self.current_tok
 
         if tok.type in (token.T_INT, token.T_IDENTIFIER):
-            node = res.register(self.atom())
+            node = res.register(self.call())
             if res.error:
                 return res
             if self.current_tok.type == token.T_FACT:
