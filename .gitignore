@@ -1,0 +1,10 @@
+
+Sansam/Parser/__pycache__/Parser.cpython-39.pyc
+Sansam/Parser/__pycache__/Nodes.cpython-39.pyc
+*.pyc
+Sansam/__pycache__/Run.cpython-39.pyc
+Sansam/Interpreter/__pycache__/Interpreter.cpython-39.pyc
+Sansam/Interpreter/__pycache__/SymbolTable.cpython-39.pyc
+Sansam/Lexer/__pycache__/Lexer.cpython-39.pyc
+Sansam/Lexer/__pycache__/Token.cpython-39.pyc
+Sansam/Values/__pycache__/Function.cpython-39.pyc
