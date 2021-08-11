@@ -9,4 +9,3 @@ with codecs.open("D:\\program.txt", encoding='utf-8') as p:
         print(error.as_string())
     else:
         print(result)
-

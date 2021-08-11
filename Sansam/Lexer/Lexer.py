@@ -83,6 +83,9 @@ class Lexer:
             elif self.current_char == ',':
                 tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == ';':
+                tokens.append(token.Token(token.T_SEP, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '~':
                 tokens.append(token.Token(token.T_THEN, pos_start=self.pos))
                 self.advance()
@@ -198,4 +201,3 @@ class Lexer:
 
         self.advance()
         return token.Token(token.T_STRING, string, pos_start=pos_start, pos_end=self.pos)
-

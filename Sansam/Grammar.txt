@@ -25,14 +25,22 @@ call                : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
 atom                : INT|FLOAT|STRING|IDENTIFIER
                     : LPAREN expr RPAREN
-                    : list-expr
-                    : while-expr
-                    : func-def
+                    : list_expr
+                    : if_expr
+                    : while_expr
+                    : func_def
 
-list-expr           : LSQUARE (expr (COMMA expr)*)? RSQUARE
+list_expr           : LSQUARE (expr (COMMA expr)*)? RSQUARE
 
-while-expr          : KEYWORD:'यावद्' expr THEN
+if_expr             : KEYWORD:'यदि' expr THEN (NewLine indent_statements)
+                      (KEYWORD:'नोचेत्' expr THEN (NewLine indent_statements))*
+                      (KEYWORD:'चेत्' THEN (NewLine indent_statements))?
+
+while_expr          : KEYWORD:'यावद्' expr THEN
                       (NewLine indent_statements)
 
-func-def            : KEYWORD:'कार्य' IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN THEN
+for -expr           : KEYWORD: 'प्रति' conditons expr T_THEN
+                      (NewLine indent_statements)
+
+func_def            : KEYWORD:'कार्य' IDENTIFIER? LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN THEN
                       (NewLine indent_statements)

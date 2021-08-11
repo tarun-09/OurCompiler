@@ -103,19 +103,29 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if self.current_tok.type == token.T_THEN:
-            res.register_advancement()
-            self.advance()
-
-            body = res.register(self.indent_statements())
-            if res.error:
-                return res
-
-            return res.success(nodes.FuncDefNode(
-                var_name_tok,
-                arg_name_tokens,
-                body
+        if not self.current_tok.type == token.T_THEN:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित '~'"
             ))
+
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.type == token.T_NL:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित नवीन् पङ्क्ति"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        body = res.register(self.indent_statements())
+        if res.error:
+            return res
+
+        return res.success(nodes.FuncDefNode(var_name_tok, arg_name_tokens, body))
 
     def while_expr(self):
         res = pr.ParseResult()
@@ -157,6 +167,237 @@ class Parser:
             return res
 
         return res.success(nodes.WhileNode(condition, body))
+
+    def if_expr(self):
+        res = pr.ParseResult()
+        cases = []
+        else_case = None
+
+        if not self.current_tok.matches(token.T_KEYWORD, 'यदि'):
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित 'यदि'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        condition = res.register(self.expr())
+        if res.error:
+            return res
+
+        if not self.current_tok.type == token.T_THEN:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित '~'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.type == token.T_NL:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित नवीन् पङ्क्ति"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        expr = res.register(self.indent_statements())
+        if res.error: return res
+        cases.append((condition, expr))
+
+        if not self.current_tok.type == token.T_NL:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित नवीन् पङ्क्ति"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        while self.current_tok.matches(token.T_KEYWORD, 'नोचेत्'):
+            res.register_advancement()
+            self.advance()
+
+            condition = res.register(self.expr())
+            if res.error: return res
+
+            if not self.current_tok.type == token.T_THEN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित '~'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            if not self.current_tok.type == token.T_NL:
+                res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित नवीन् पङ्क्ति"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            expr = res.register(self.indent_statements())
+            if res.error: return res
+            cases.append((condition, expr))
+
+            if not self.current_tok.type == token.T_NL:
+                res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित नवीन् पङ्क्ति"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+        if self.current_tok.matches(token.T_KEYWORD, 'चेत्'):
+            res.register_advancement()
+            self.advance()
+
+            if not self.current_tok.type == token.T_THEN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित '~'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            if not self.current_tok.type == token.T_NL:
+                res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f"अपेक्षित नवीन् पङ्क्ति"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            else_case = res.register(self.indent_statements())
+            if res.error: return res
+
+            res.register_advancement()
+            self.advance()
+
+        return res.success(nodes.IfNode(cases, else_case))
+
+    def for_expr(self):
+
+        res = pr.ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+        if not self.current_tok.matches(token.T_KEYWORD, "प्रति"):
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Expected "प्रति"'
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != token.T_LPAREN:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Expected "("'
+            ))
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == token.T_IDENTIFIER:
+            var_name = self.current_tok
+            res.register_advancement()
+            self.advance()
+            if self.current_tok.type == token.T_SEP:
+                start_value = None
+            elif self.current_tok.type == token.T_EQU:
+                res.register_advancement()
+                self.advance()
+
+                start_value = res.register(self.expr())
+                if res.error:
+                    return res
+            else:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    f'Expected "="'
+                ))
+
+        else:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected 'नामन्'"
+            ))
+
+        # var_name = self.current_tok
+        # res.register_advancement()
+        # self.advance()
+
+        #if self.current_tok.type != token.T_EQU:
+
+        if self.current_tok.type != token.T_SEP:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Missing ";"'
+            ))
+        res.register_advancement()
+        self.advance()
+        end_point = res.register(self.expr())
+        if res.error:
+            return res
+        if self.current_tok.type == token.T_SEP:
+            res.register_advancement()
+            self.advance()
+
+            if self.current_tok.type == token.T_RPAREN:
+                step_value = None
+
+            else:
+
+                step_value = res.register(self.expr())
+                res.register_advancement()
+                # self.advance()
+
+        else:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Missing ","'
+            ))
+        if self.current_tok.type != token.T_RPAREN:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Missing ")"'
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != token.T_THEN:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Missing "~"'
+            ))
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != token.T_NL:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f'Expression start in New Line'
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        body = res.register(self.indent_statements())
+
+        if res.error:
+            return res
+
+        return res.success(nodes.ForNode(var_name, start_value, end_point, step_value, body))
 
     def list_expr(self):
         res = pr.ParseResult()
@@ -240,6 +481,11 @@ class Parser:
                     "अपेक्षित ')'"
                 ))
 
+        elif tok.matches(token.T_KEYWORD, "प्रति"):
+            for_expr = res.register(self.for_expr())
+            if res.error: return res
+            return res.success(for_expr)
+
         elif tok.matches(token.T_KEYWORD, 'यावद्'):
             while_expr = res.register(self.while_expr())
             if res.error:
@@ -257,6 +503,12 @@ class Parser:
             if res.error:
                 return res
             return res.success(list_expr)
+
+        elif tok.matches(token.T_KEYWORD, 'यदि'):
+            if_expr = res.register(self.if_expr())
+            # print(self.current_tok)
+            if res.error: return res
+            return res.success(if_expr)
 
         return res.failure(error.InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
