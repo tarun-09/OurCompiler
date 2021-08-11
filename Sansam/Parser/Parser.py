@@ -103,19 +103,29 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if self.current_tok.type == token.T_THEN:
-            res.register_advancement()
-            self.advance()
-
-            body = res.register(self.indent_statements())
-            if res.error:
-                return res
-
-            return res.success(nodes.FuncDefNode(
-                var_name_tok,
-                arg_name_tokens,
-                body
+        if not self.current_tok.type == token.T_THEN:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित '~'"
             ))
+
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.type == token.T_NL:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"अपेक्षित नवीन् पङ्क्ति"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        body = res.register(self.indent_statements())
+        if res.error:
+            return res
+
+        return res.success(nodes.FuncDefNode(var_name_tok, arg_name_tokens, body))
 
     def while_expr(self):
         res = pr.ParseResult()
@@ -301,8 +311,8 @@ class Parser:
             var_name = self.current_tok
             res.register_advancement()
             self.advance()
-            if self.current_tok.type==token.T_SEP:
-                start_value=None
+            if self.current_tok.type == token.T_SEP:
+                start_value = None
             elif self.current_tok.type == token.T_EQU:
                 res.register_advancement()
                 self.advance()
@@ -331,14 +341,14 @@ class Parser:
         if self.current_tok.type != token.T_SEP:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f'Missing ","'
+                f'Missing ";"'
             ))
         res.register_advancement()
         self.advance()
         end_point = res.register(self.expr())
         if res.error:
             return res
-        if self.current_tok.type == token.T_COMMA:
+        if self.current_tok.type == token.T_SEP:
             res.register_advancement()
             self.advance()
 
@@ -382,7 +392,7 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        body = res.register(self.expr())
+        body = res.register(self.indent_statements())
 
         if res.error:
             return res
@@ -471,7 +481,6 @@ class Parser:
                     "अपेक्षित ')'"
                 ))
 
-            return res.success(nodes.BooleanNode(tok))
         elif tok.matches(token.T_KEYWORD, "प्रति"):
             for_expr = res.register(self.for_expr())
             if res.error: return res
