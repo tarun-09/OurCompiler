@@ -39,6 +39,20 @@ class Number(val.Value):
         else:
             return None, val.Value.illegal_operation(self, other)
 
+    def factorial(self):
+        return Number(math.factorial(self.value)).set_context(self.context),None
+
+
+
+    def modulus(self, other):
+        if isinstance(other, Number):
+            if other.value == 0:
+                return None, error.RunTimeError(
+                    other.pos_start, other.pos_end, "विभाजन सह शून्य दोष", self.context
+                )
+
+            return Number(self.value % other.value).set_context(self.context), None
+
     def exponential(self, other):
         if isinstance(other, Number):
             return Number(self.value ** other.value).set_context(self.context), None
