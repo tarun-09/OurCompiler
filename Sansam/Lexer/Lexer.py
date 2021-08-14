@@ -23,10 +23,7 @@ class Lexer:
         tokens = []
 
         while self.current_char is not None:
-            if self.current_char == ' ':
-                self.advance()
-            elif self.current_char == '\t':
-                tokens.append(token.Token(token.T_TAB, pos_start=self.pos))
+            if self.current_char in ' \t':
                 self.advance()
             elif self.current_char == '\n':
                 tokens.append(token.Token(token.T_NL, pos_start=self.pos))
@@ -79,6 +76,12 @@ class Lexer:
                 self.advance()
             elif self.current_char == ']':
                 tokens.append(token.Token(token.T_RSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '{':
+                tokens.append(token.Token(token.T_LCURL, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '}':
+                tokens.append(token.Token(token.T_RCURL, pos_start=self.pos))
                 self.advance()
             elif self.current_char == ',':
                 tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
