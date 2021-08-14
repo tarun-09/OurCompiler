@@ -23,15 +23,18 @@ class Lexer:
         tokens = []
 
         while self.current_char is not None:
-            if self.current_char in ' \t':
+            if self.current_char == ' ':
+                self.advance()
+            elif self.current_char == '\t':
+                tokens.append(token.Token(token.T_TAB, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '\n':
                 tokens.append(token.Token(token.T_NL, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '\r':
-                tokens.append(token.Token(token.T_NL, pos_start=self.pos))
                 self.advance()
                 if self.current_char == '\n':
+                    tokens.append(token.Token(token.T_NL, pos_start=self.pos))
                     self.advance()
             elif self.current_char == '"':
                 tokens.append(self.make_string())
@@ -79,6 +82,12 @@ class Lexer:
                 self.advance()
             elif self.current_char == ',':
                 tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ';':
+                tokens.append(token.Token(token.T_SEP, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '~':
+                tokens.append(token.Token(token.T_THEN, pos_start=self.pos))
                 self.advance()
             else:
                 pos_start = self.pos.copy()
@@ -139,7 +148,8 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             tok_type = token.T_ISNEQ
-        elif self.current_char == '*':
+
+        if self.current_char == '*':
             self.advance()
             tok_type = token.T_FACT
 
@@ -191,4 +201,3 @@ class Lexer:
 
         self.advance()
         return token.Token(token.T_STRING, string, pos_start=pos_start, pos_end=self.pos)
-

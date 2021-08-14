@@ -40,4 +40,3 @@ class Boolean(val.Value):
             return str("सत्यम्")
         else:
             return str("असत्यम्")
-

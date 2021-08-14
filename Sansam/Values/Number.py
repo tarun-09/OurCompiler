@@ -1,3 +1,5 @@
+
+
 import math
 
 import Sansam.Values.Boolean as boolean
@@ -126,7 +128,7 @@ class Number(val.Value):
         return str(self.value)
 
 
-null = Number(0)
-false = Number(0)
-true = Number(1)
-math_PI = Number(math.pi)
+Number.null = Number(0)
+Number.false = Number(0)
+Number.true = Number(1)
+Number.math_PI = Number(math.pi)

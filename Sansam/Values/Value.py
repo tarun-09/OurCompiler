@@ -75,5 +75,3 @@ class Value:
             'Illegal operation',
             self.context
         )
-
-

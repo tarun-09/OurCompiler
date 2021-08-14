@@ -5,6 +5,7 @@ import Sansam.Lexer.Token as token
 import Sansam.Values.Boolean as boolean
 import Sansam.Values.String as string
 import Sansam.Values.List as list
+import Sansam.Values.Function as func
 
 
 class Interpreter:
@@ -40,6 +41,42 @@ class Interpreter:
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
+    def visit_ForNode(self, node, context):
+
+        res = rtr.RunTimeResult()
+        if node.start_value_node:
+            start_value = res.register(self.visit(node.start_value_node, context))
+            if res.error:
+                return res
+        else:
+            start_value=num.Number(0)
+
+        end_value = res.register(self.visit(node.end_value_node, context))
+        if res.error:
+            return res
+        if node.step_value_node:
+            step_value=res.register((self.visit(node.step_value_node,context)))
+            if res.error:
+                return res
+        else:
+            if(start_value.value<end_value.value):
+                step_value=num.Number(1)
+            else:
+                step_value=num.Number(-1)
+        i = start_value.value
+        if step_value.value >= 0:
+            condition = lambda: i < end_value.value
+        else:
+            condition = lambda: i > end_value.value
+        while condition():
+            context.symbol_table.set(node.var_name_tok.value, num.Number(i))
+            i += step_value.value
+
+            res.register(self.visit(node.body_node, context))
+            if res.error:
+                return res
+        return res.success(None)
+
     def visit_BooleanNode(self, node, context):
         return rtr.RunTimeResult().success(
             boolean.Boolean(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
@@ -57,7 +94,7 @@ class Interpreter:
                 context
             ))
 
-        value = value.copy().set_pos(node.pos_start, node.pos_end)
+        value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(value)
 
     def visit_VarAssignNode(self, node, context):
@@ -130,7 +167,7 @@ class Interpreter:
         else:
             return res.success(number.set_pos(Node.pos_start, Node.pos_end))
 
-    def visit_FactorialNode(self,Node,context):
+    def visit_FactorialNode(self, Node, context):
         res = rtr.RunTimeResult()
         factorial = res.register(self.visit(Node.node, context))
         if res.error:
@@ -138,18 +175,80 @@ class Interpreter:
 
         error = None
 
-        # def Factorial(fact):
-        #     if fact.get_comparison_eq(0):
-        #          return num.
-        #     # print()
-        #     # Factorial(fact.subtraction(1)).multiplication(fact)
-        #     print(fact)
-        #     return fact.subtraction(num.Number(1))
-
         if Node.op_tok.type == token.T_FACT:
-            factorial,error = factorial.factorial()
+            factorial, error = factorial.factorial()
         if error:
             return res.failure(error)
         else:
             return res.success(factorial.set_pos(Node.pos_start, Node.pos_end))
 
+    def visit_WhileNode(self, node, context):
+        res = rtr.RunTimeResult()
+
+        while True:
+            condition = res.register(self.visit(node.condition_node, context))
+            if res.error:
+                return res
+
+            if not condition.is_true(): break
+
+            res.register(self.visit(node.body_node, context))
+            if res.error:
+                return res
+
+        return res.success(None)
+
+
+    def visit_FuncDefNode(self, node, context):
+        res = rtr.RunTimeResult()
+
+        func_name = node.var_name_tok.value if node.var_name_tok else None
+        body_node = node.body_node
+        arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
+
+        func_value = func.Function(func_name, body_node, arg_names).set_context(context).set_pos(
+            node.pos_start, node.pos_end)
+
+        if node.var_name_tok:
+            context.symbol_table.set(func_name, func_value)
+
+        return res.success(func_value)
+
+    def visit_CallNode(self, node, context):
+        res = rtr.RunTimeResult()
+        args = []
+
+        value_to_call = res.register(self.visit(node.node_to_call, context))
+        if res.error:
+            return res
+        value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
+
+        for arg_node in node.arg_nodes:
+            args.append(res.register(self.visit(arg_node, context)))
+            if res.error:
+                return res
+
+        return_value = res.register(value_to_call.execute(args))
+        if res.error:
+            return res
+        return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
+        return res.success(return_value)
+
+    def visit_IfNode(self, node, context):
+        res = rtr.RunTimeResult()
+
+        for condition, expr in node.cases:
+            condition_value = res.register(self.visit(condition, context))
+            if res.error: return res
+
+            if condition_value.is_true():
+                expr_value = res.register(self.visit(expr, context))
+                if res.error: return res
+                return res.success(expr_value)
+
+        if node.else_case:
+            else_value = res.register(self.visit(node.else_case, context))
+            if res.error: return res
+            return res.success(else_value)
+
+        return res.success(None)

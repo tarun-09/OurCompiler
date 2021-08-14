@@ -4,11 +4,23 @@ import Sansam.Parser.Parser
 import Sansam.Interpreter.Interpreter
 import Sansam.Context
 import Sansam.Interpreter.SymbolTable as st
+import Sansam.Values.Function
 
 global_symbol_table = st.SymbolTable()
-global_symbol_table.set("लुप्तः", Sansam.Values.Number.null)
-global_symbol_table.set("असत्यम्", Sansam.Values.Number.false)
-global_symbol_table.set("सत्यम्", Sansam.Values.Number.true)
+global_symbol_table.set("लुप्तः", Sansam.Values.Number.Number.null)
+global_symbol_table.set("असत्यम्", Sansam.Values.Number.Number.false)
+global_symbol_table.set("सत्यम्", Sansam.Values.Number.Number.true)
+global_symbol_table.set("मुद्रणः", Sansam.Values.Function.BuiltInFunction.print)
+global_symbol_table.set("PRINT_RET", Sansam.Values.Function.BuiltInFunction.print_ret)
+global_symbol_table.set("INPUT", Sansam.Values.Function.BuiltInFunction.print_ret)
+global_symbol_table.set("INPUT_INT", Sansam.Values.Function.BuiltInFunction.input_int)
+global_symbol_table.set("CLEAR", Sansam.Values.Function.BuiltInFunction.clear)
+global_symbol_table.set("CLS", Sansam.Values.Function.BuiltInFunction.clear)
+global_symbol_table.set("IS_LIST", Sansam.Values.Function.BuiltInFunction.is_list)
+global_symbol_table.set("IS_FUN", Sansam.Values.Function.BuiltInFunction.is_function)
+global_symbol_table.set("APPEND", Sansam.Values.Function.BuiltInFunction.append)
+global_symbol_table.set("POP", Sansam.Values.Function.BuiltInFunction.pop)
+
 
 
 def run(fn, text):
@@ -31,4 +43,3 @@ def run(fn, text):
     result = interpreter.visit(ast.node, context)
 
     return result.value, result.error
-    # return tokens, error

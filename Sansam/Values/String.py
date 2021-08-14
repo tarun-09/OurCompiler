@@ -5,6 +5,7 @@ import Sansam.Values.Number as num
 class String(val.Value):
     def __init__(self, value):
         super().__init__()
+
         self.value = value
 
     def addition(self, other):
@@ -27,6 +28,9 @@ class String(val.Value):
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
+
+    def __str__(self):
+        return self.value
 
     def __repr__(self):
         return f'"{self.value}"'

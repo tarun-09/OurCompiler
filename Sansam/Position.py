@@ -18,4 +18,3 @@ class Position:
 
     def copy(self):
         return Position(self.index, self.line, self.col, self.fn, self.ftext)
-
