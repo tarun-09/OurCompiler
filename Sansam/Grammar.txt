@@ -8,7 +8,7 @@ expr                : IDENTIFIER EQU expr
                     : comp-expr((KEYWORD:'वा'|KEYWORD:'च') comp-expr)*
 
 comp_expr           : (KEYWORD:'न'| NOT) comp-expr
-                    : arith-expr ((ISEQ|ISNEQ|ISG|ISL|ISGEQ|ISLEQ) arith-expr)*
+                    : arith-expr ((ISEQ|ISNEQ|ISG|ISL|ISGEQ|ISLEQ|RSHIFT|LSHIFT|XOR) arith-expr)*
 
 arith_expr          : term ((PLUS|MINUS) term)*
 

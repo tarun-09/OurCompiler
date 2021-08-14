@@ -140,6 +140,12 @@ class Interpreter:
             result, error = left.get_comparison_lte(right)
         elif node.op_tok.type == token.T_ISGEQ:
             result, error = left.get_comparison_gte(right)
+        elif node.op_tok.type == token.T_RSHIFT:
+            result, error = left.get_shift_right(right)
+        elif node.op_tok.type == token.T_LSHIFT:
+            result, error = left.get_shift_left(right)
+        elif node.op_tok.type == token.T_XOR:
+            result, error = left.get_xor(right)
         elif node.op_tok.matches(token.T_KEYWORD, 'च'):
             result, error = left.anded_by(right)
         elif node.op_tok.matches(token.T_KEYWORD, 'वा'):
