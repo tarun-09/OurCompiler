@@ -119,6 +119,9 @@ class Number(val.Value):
     def notted(self):
         return boolean.Boolean(1 if self.value == 0 else 0).set_context(self.context), None
 
+    def bitnotted(self):
+        return Number(~self.value).set_context(self.context),None
+
     def copy(self):
         copy = Number(self.value)
         copy.set_pos(self.pos_start, self.pos_end)

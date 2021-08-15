@@ -155,6 +155,7 @@ class Interpreter:
             return res.success(result.set_pos(node.pos_start, node.pos_end))
 
     def visit_UnaryOpNode(self, Node, context):
+
         res = rtr.RunTimeResult()
         number = res.register(self.visit(Node.node, context))
         if res.error:
@@ -166,6 +167,10 @@ class Interpreter:
             number, error = num.Number(0).subtraction(number)
         elif Node.op_tok.matches(token.T_KEYWORD, 'न') or Node.op_tok.type == token.T_NOT:
             number, error = number.notted()
+
+        elif Node.op_tok.type==token.T_BIT_NOT:
+
+            number,error=number.bitnotted()
         if error:
             return res.failure(error)
         else:

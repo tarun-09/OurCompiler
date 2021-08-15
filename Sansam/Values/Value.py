@@ -63,6 +63,8 @@ class Value:
 
     def notted(self):
         return None, self.illegal_operation()
+    def bitnotted(self):
+        return None, self.illegal_operation()
 
     def execute(self, args):
         return rtr.RunTimeResult().failure(self.illegal_operation())

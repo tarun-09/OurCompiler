@@ -22,6 +22,7 @@ T_ISNEQ = '!='
 T_ISEQ = '=='
 T_BIT_AND= "&"
 T_BIT_OR="|"
+T_BIT_NOT="$"
 T_ISG = '>'
 T_ISL = '<'
 T_ISGEQ = '>='
