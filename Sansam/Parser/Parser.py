@@ -125,7 +125,7 @@ class Parser:
         if res.error:
             return res
 
-        if self.current_tok != token.T_RCURL:
+        if not self.current_tok.type == token.T_RCURL:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 "अपेक्षित '}' "
@@ -134,7 +134,7 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        return res.success(nodes.FuncDefNode(var_name_tok, arg_name_tokens, body))
+        return res.success(nodes.FuncDefNode(var_name_tok, arg_name_tokens, body, False))
 
     def while_expr(self):
         res = pr.ParseResult()
@@ -271,8 +271,6 @@ class Parser:
             else_case = res.register(self.statements())
             if res.error:
                 return res
-
-
 
             if not self.current_tok.type == token.T_RCURL:
                 res.failure(error.InvalidSyntaxError(
@@ -646,10 +644,41 @@ class Parser:
         if res.error:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित अंकम्, चरः, identifier, '+', '-' '[' वा '('"
+                "अपेक्षित अंकम्, चरः, नामन्, '+', '-' '[' वा '('"
             ))
 
         return res.success(node)
+
+    def statement(self):
+        res = pr.ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.matches(token.T_KEYWORD, 'यच्छ'):
+            res.register_advancement()
+            self.advance()
+
+            expr = res.try_register(self.expr())
+            if not expr:
+                self.reverse(res.to_reverse_count)
+            return res.success(nodes.ReturnNode(expr, pos_start, self.current_tok.pos_start.copy()))
+
+        if self.current_tok.matches(token.T_KEYWORD, 'अनुवर्तते'):
+            res.register_advancement()
+            self.advance()
+            return res.success(nodes.ContinueNode(pos_start, self.current_tok.pos_start.copy()))
+
+        if self.current_tok.matches(token.T_KEYWORD, 'विघ्नः'):
+            res.register_advancement()
+            self.advance()
+            return res.success(nodes.BreakNode(pos_start, self.current_tok.pos_start.copy()))
+
+        expr = res.register(self.expr())
+        if res.error:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित 'यच्छ', 'अनुवर्तते', 'विघ्नः', 'यदि', 'प्रति', 'यावद्', 'कार्य', अंकम्, चरः, नामन, '+', '-', '(', '[' वा 'न'"
+            ))
+        return res.success(expr)
 
     def statements(self):
         res = pr.ParseResult()
@@ -660,7 +689,7 @@ class Parser:
             res.register_advancement()
             self.advance()
 
-        statement = res.register(self.expr())
+        statement = res.register(self.statement())
         if res.error:
             return res
         statements.append(statement)
@@ -680,7 +709,7 @@ class Parser:
             if not more_statements:
                 break
 
-            statement = res.try_register(self.expr())
+            statement = res.try_register(self.statement())
             if not statement:
                 self.reverse(res.to_reverse_count)
                 more_statements = False

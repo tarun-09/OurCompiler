@@ -1,4 +1,9 @@
-statements          : NewLine* expr(NewLine + expr)* NewLine*
+statements          : NewLine* statement(NewLine + statement)* NewLine*
+
+statement           : KEYWORD:'यच्छ' expr?
+                    : KEYWORD:'विघ्नः'
+                    : KEYWORD:'अनुवर्तते'
+                    : expr
 
 expr                : IDENTIFIER EQU expr
                     : comp-expr((KEYWORD:'वा'|KEYWORD:'च') comp-expr)*
