@@ -49,20 +49,20 @@ class Interpreter:
             if res.error:
                 return res
         else:
-            start_value=num.Number(0)
+            start_value = num.Number(0)
 
         end_value = res.register(self.visit(node.end_value_node, context))
         if res.error:
             return res
         if node.step_value_node:
-            step_value=res.register((self.visit(node.step_value_node,context)))
+            step_value = res.register((self.visit(node.step_value_node, context)))
             if res.error:
                 return res
         else:
-            if(start_value.value<end_value.value):
-                step_value=num.Number(1)
+            if (start_value.value < end_value.value):
+                step_value = num.Number(1)
             else:
-                step_value=num.Number(-1)
+                step_value = num.Number(-1)
         i = start_value.value
         if step_value.value >= 0:
             condition = lambda: i < end_value.value
@@ -94,7 +94,7 @@ class Interpreter:
                 context
             ))
 
-        value = value.copy().set_pos(node.pos_start, node.pos_end)
+        value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(value)
 
     def visit_VarAssignNode(self, node, context):
@@ -198,7 +198,6 @@ class Interpreter:
 
         return res.success(None)
 
-
     def visit_FuncDefNode(self, node, context):
         res = rtr.RunTimeResult()
 
@@ -219,18 +218,15 @@ class Interpreter:
         args = []
 
         value_to_call = res.register(self.visit(node.node_to_call, context))
-        if res.error:
-            return res
+        if res.error: return res
         value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
 
         for arg_node in node.arg_nodes:
             args.append(res.register(self.visit(arg_node, context)))
-            if res.error:
-                return res
+            if res.error: return res
 
         return_value = res.register(value_to_call.execute(args))
-        if res.error:
-            return res
+        if res.error: return res
         return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(return_value)
 

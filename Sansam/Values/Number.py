@@ -4,7 +4,6 @@ import Sansam.Values.Boolean as boolean
 import Sansam.Error.Errors as error
 import Sansam.Values.Value as val
 
-
 class Number(val.Value):
     def __init__(self, value):
         super().__init__()
@@ -129,4 +128,4 @@ class Number(val.Value):
 null = Number(0)
 false = Number(0)
 true = Number(1)
-math_PI = Number(math.pi)
+# math_PI = Number(math.pi)

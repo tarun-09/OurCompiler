@@ -26,6 +26,7 @@ T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
 T_COMMA	= ','
+
 T_SEP = ';'
 T_FACT = 'T_FACT'
 
