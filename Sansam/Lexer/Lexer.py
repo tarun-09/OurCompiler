@@ -28,6 +28,8 @@ class Lexer:
             elif self.current_char == '\n':
                 tokens.append(token.Token(token.T_NL, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '#':
+                self.skip_comment()
             elif self.current_char == '\r':
                 self.advance()
                 if self.current_char == '\n':
@@ -204,3 +206,11 @@ class Lexer:
 
         self.advance()
         return token.Token(token.T_STRING, string, pos_start=pos_start, pos_end=self.pos)
+
+    def skip_comment(self):
+        self.advance()
+
+        while self.current_char != '\n':
+            self.advance()
+
+        self.advance()
