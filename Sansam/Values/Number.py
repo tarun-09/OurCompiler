@@ -1,5 +1,4 @@
 import math
-
 import Sansam.Values.Boolean as boolean
 import Sansam.Error.Errors as error
 import Sansam.Values.Value as val
@@ -70,6 +69,16 @@ class Number(val.Value):
             return boolean.Boolean(self.value != other.value).set_context(self.context), None
         else:
             return None, val.Value.illegal_operation(self, other)
+    def get_comparison_bitand(self,other):
+        if isinstance(other, Number):
+            return Number(self.value & other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self,other)
+    def get_comparison_bitor(self,other):
+        if isinstance(other, Number):
+            return Number(self.value | other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self,other)
 
     def get_comparison_lt(self, other):
         if isinstance(other, Number):

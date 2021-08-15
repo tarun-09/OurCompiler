@@ -136,6 +136,10 @@ class Interpreter:
             result, error = left.get_comparison_lt(right)
         elif node.op_tok.type == token.T_ISG:
             result, error = left.get_comparison_gt(right)
+        elif node.op_tok.type == token.T_BIT_AND:
+            result, error = left.get_comparison_bitand(right)
+        elif node.op_tok.type == token.T_BIT_OR:
+            result, error = left.get_comparison_bitor(right)
         elif node.op_tok.type == token.T_ISLEQ:
             result, error = left.get_comparison_lte(right)
         elif node.op_tok.type == token.T_ISGEQ:
