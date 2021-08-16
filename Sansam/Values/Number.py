@@ -95,6 +95,25 @@ class Number(val.Value):
         else:
             return None, val.Value.illegal_operation(self, other)
 
+    def get_shift_right(self,other):
+        if isinstance(other, Number):
+            return Number(self.value >> other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def get_shift_left(self,other):
+        if isinstance(other, Number):
+            return Number(self.value << other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def get_xor(self,other):
+        if isinstance(other, Number):
+            return Number(self.value ^ other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+
     def anded_by(self, other):
         if isinstance(other, Number):
             return Number(self.value and other.value).set_context(self.context), None

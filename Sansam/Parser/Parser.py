@@ -611,7 +611,7 @@ class Parser:
             return res.success(nodes.UnaryOpNode(op_tok, node))
 
         node = res.register(self.bin_op(self.arith_expr, (token.T_ISG, token.T_ISEQ, token.T_ISNEQ, token.T_ISL,
-                                                          token.T_ISLEQ, token.T_ISGEQ)))
+                                                          token.T_ISLEQ, token.T_ISGEQ, token.T_RSHIFT,token.T_LSHIFT,token.T_XOR)))
 
         if res.error:
             return res.failure(error.InvalidSyntaxError(
@@ -771,5 +771,6 @@ class Parser:
             if res.error:
                 return res
             left = nodes.BinOpNode(left, op_tok, right)
+
 
         return res.success(left)

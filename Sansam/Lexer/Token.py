@@ -21,7 +21,10 @@ T_EQU = "="
 T_ISNEQ = '!='
 T_ISEQ = '=='
 T_ISG = '>'
+T_RSHIFT = '>>'
 T_ISL = '<'
+T_LSHIFT = '<<'
+T_XOR = "^^"
 T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
