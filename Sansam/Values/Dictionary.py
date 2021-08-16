@@ -7,7 +7,7 @@ class Dictionary(val.Value):
         self.elements = elements
 
     def copy(self):
-        copy = Dictionary(self.elements[:])
+        copy = Dictionary(self.elements)
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
