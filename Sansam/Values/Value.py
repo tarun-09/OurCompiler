@@ -55,7 +55,15 @@ class Value:
     def ored_by(self, other):
         return None, self.illegal_operation(other)
 
+    def get_comparison_bitand(self,other):
+        return None, self.illegal_operation(other)
+
+    def get_comparison_bitor(self,other):
+        return None, self.illegal_operation(other)
+
     def notted(self):
+        return None, self.illegal_operation()
+    def bitnotted(self):
         return None, self.illegal_operation()
 
     def execute(self, args):

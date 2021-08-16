@@ -1,5 +1,4 @@
 import math
-
 import Sansam.Values.Boolean as boolean
 import Sansam.Error.Errors as error
 import Sansam.Values.Value as val
@@ -70,6 +69,16 @@ class Number(val.Value):
             return boolean.Boolean(self.value != other.value).set_context(self.context), None
         else:
             return None, val.Value.illegal_operation(self, other)
+    def get_comparison_bitand(self,other):
+        if isinstance(other, Number):
+            return Number(self.value & other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self,other)
+    def get_comparison_bitor(self,other):
+        if isinstance(other, Number):
+            return Number(self.value | other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self,other)
 
     def get_comparison_lt(self, other):
         if isinstance(other, Number):
@@ -95,6 +104,25 @@ class Number(val.Value):
         else:
             return None, val.Value.illegal_operation(self, other)
 
+    def get_shift_right(self,other):
+        if isinstance(other, Number):
+            return Number(self.value >> other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def get_shift_left(self,other):
+        if isinstance(other, Number):
+            return Number(self.value << other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def get_xor(self,other):
+        if isinstance(other, Number):
+            return Number(self.value ^ other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+
     def anded_by(self, other):
         if isinstance(other, Number):
             return Number(self.value and other.value).set_context(self.context), None
@@ -109,6 +137,9 @@ class Number(val.Value):
 
     def notted(self):
         return boolean.Boolean(1 if self.value == 0 else 0).set_context(self.context), None
+
+    def bitnotted(self):
+        return Number(~self.value).set_context(self.context),None
 
     def copy(self):
         copy = Number(self.value)

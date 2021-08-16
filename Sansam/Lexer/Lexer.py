@@ -57,8 +57,7 @@ class Lexer:
                 tokens.append(token.Token(token.T_MOD, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '^':
-                tokens.append(token.Token(token.T_POW, pos_start=self.pos))
-                self.advance()
+                tokens.append(self.power_of())
             elif self.current_char == '=':
                 tokens.append(self.make_equals())
             elif self.current_char == '!':
@@ -73,17 +72,28 @@ class Lexer:
             elif self.current_char == ')':
                 tokens.append(token.Token(token.T_RPAREN, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '&':
+                tokens.append(token.Token(token.T_BIT_AND, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '|':
+                tokens.append(token.Token(token.T_BIT_OR, pos_start=self.pos))
+                self.advance()
+
             elif self.current_char == '[':
                 tokens.append(token.Token(token.T_LSQUARE, pos_start=self.pos))
                 self.advance()
             elif self.current_char == ']':
                 tokens.append(token.Token(token.T_RSQUARE, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '$':
+                tokens.append(token.Token(token.T_BIT_NOT, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '{':
                 tokens.append(token.Token(token.T_LCURL, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '}':
                 tokens.append(token.Token(token.T_RCURL, pos_start=self.pos))
+
                 self.advance()
             elif self.current_char == ',':
                 tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
@@ -168,6 +178,9 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             tok_type = token.T_ISGEQ
+        elif self.current_char == '>':
+            self.advance()
+            tok_type = token.T_RSHIFT
 
         return token.Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
@@ -179,6 +192,20 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             tok_type = token.T_ISLEQ
+        elif self.current_char == '<':
+            self.advance()
+            tok_type = token.T_LSHIFT
+
+        return token.Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def power_of(self):
+        tok_type = token.T_POW
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '^':
+            self.advance()
+            tok_type = token.T_XOR
 
         return token.Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 

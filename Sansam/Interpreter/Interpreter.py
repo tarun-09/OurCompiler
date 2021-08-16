@@ -148,10 +148,20 @@ class Interpreter:
             result, error = left.get_comparison_lt(right)
         elif node.op_tok.type == token.T_ISG:
             result, error = left.get_comparison_gt(right)
+        elif node.op_tok.type == token.T_BIT_AND:
+            result, error = left.get_comparison_bitand(right)
+        elif node.op_tok.type == token.T_BIT_OR:
+            result, error = left.get_comparison_bitor(right)
         elif node.op_tok.type == token.T_ISLEQ:
             result, error = left.get_comparison_lte(right)
         elif node.op_tok.type == token.T_ISGEQ:
             result, error = left.get_comparison_gte(right)
+        elif node.op_tok.type == token.T_RSHIFT:
+            result, error = left.get_shift_right(right)
+        elif node.op_tok.type == token.T_LSHIFT:
+            result, error = left.get_shift_left(right)
+        elif node.op_tok.type == token.T_XOR:
+            result, error = left.get_xor(right)
         elif node.op_tok.matches(token.T_KEYWORD, 'च'):
             result, error = left.anded_by(right)
         elif node.op_tok.matches(token.T_KEYWORD, 'वा'):
@@ -163,6 +173,7 @@ class Interpreter:
             return res.success(result.set_pos(node.pos_start, node.pos_end))
 
     def visit_UnaryOpNode(self, Node, context):
+
         res = rtr.RunTimeResult()
         number = res.register(self.visit(Node.node, context))
         if res.should_return():
@@ -174,6 +185,10 @@ class Interpreter:
             number, error = num.Number(0).subtraction(number)
         elif Node.op_tok.matches(token.T_KEYWORD, 'न') or Node.op_tok.type == token.T_NOT:
             number, error = number.notted()
+
+        elif Node.op_tok.type==token.T_BIT_NOT:
+
+            number,error=number.bitnotted()
         if error:
             return res.failure(error)
         else:
