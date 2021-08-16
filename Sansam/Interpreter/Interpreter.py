@@ -6,6 +6,7 @@ import Sansam.Values.Boolean as boolean
 import Sansam.Values.String as string
 import Sansam.Values.List as list
 import Sansam.Values.Function as func
+import Sansam.Values.Dictionary as dict
 
 
 class Interpreter:
@@ -39,6 +40,22 @@ class Interpreter:
 
         return res.success(
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_DictionaryNode(self, node, context):
+        res = rtr.RunTimeResult()
+        elements = {}
+
+        for key_node in node.element_nodes:
+            key = res.register(self.visit(key_node, context))
+            if res.should_return(): return res
+            value = res.register(self.visit(node.element_nodes[key_node], context))
+            if res.should_return(): return res
+
+            elements[key] = value
+
+        return res.success(
+            dict.Dictionary(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
     def visit_ForNode(self, node, context):
@@ -186,9 +203,9 @@ class Interpreter:
         elif Node.op_tok.matches(token.T_KEYWORD, 'न') or Node.op_tok.type == token.T_NOT:
             number, error = number.notted()
 
-        elif Node.op_tok.type==token.T_BIT_NOT:
+        elif Node.op_tok.type == token.T_BIT_NOT:
 
-            number,error=number.bitnotted()
+            number, error = number.bitnotted()
         if error:
             return res.failure(error)
         else:
@@ -243,7 +260,8 @@ class Interpreter:
         body_node = node.body_node
         arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
 
-        func_value = func.Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(
+        func_value = func.Function(func_name, body_node, arg_names, node.should_auto_return).set_context(
+            context).set_pos(
             node.pos_start, node.pos_end)
 
         if node.var_name_tok:

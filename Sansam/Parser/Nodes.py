@@ -27,6 +27,13 @@ class ListNode:
         self.pos_end = pos_end
 
 
+class DictionaryNode:
+    def __init__(self, element_nodes, pos_start, pos_end):
+        self.element_nodes = element_nodes
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+
 class BooleanNode:
     def __init__(self, tok):
         self.tok = tok
