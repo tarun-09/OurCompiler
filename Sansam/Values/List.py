@@ -56,4 +56,4 @@ class List(val.Value):
         return copy
 
     def __repr__(self):
-        return f'[{", ".join([str(x) for x in self.elements])}]'
+        return str(self.elements)

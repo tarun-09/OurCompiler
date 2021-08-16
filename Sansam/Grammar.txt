@@ -33,6 +33,8 @@ atom                : INT|FLOAT|STRING|IDENTIFIER
 
 list_expr           : LSQUARE (expr (COMMA expr)*)? RSQUARE
 
+dict_expr           : LCURL (expr THEN expr (COMMA expr THEN expr)*)? RCURL
+
 if_expr             : KEYWORD:'यदि' expr LCURL statements RCURL
                       (KEYWORD:'नोचेत्' expr LCURL statements RCURL)*
                       (KEYWORD:'चेत्' LCURL statements RCURL)?

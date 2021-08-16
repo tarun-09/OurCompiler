@@ -391,6 +391,94 @@ class Parser:
 
         return res.success(nodes.ForNode(var_name, start_value, end_point, step_value, body))
 
+    def dict_expr(self):
+        res = pr.ParseResult()
+        element_nodes = {}
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.type != token.T_LCURL:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित '{'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == token.T_RCURL:
+            res.register_advancement()
+            self.advance()
+
+        else:
+            key = res.register(self.expr())
+            if res.error:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                ))
+
+            if not self.current_tok.type == token.T_THEN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित '~'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            value = res.register(self.expr())
+            if res.error:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                ))
+
+            element_nodes[key] = value
+
+            while self.current_tok.type == token.T_COMMA:
+                res.register_advancement()
+                self.advance()
+
+                key = res.register(self.expr())
+                if res.error:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                    ))
+
+                if not self.current_tok.type == token.T_THEN:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित '~'"
+                    ))
+
+                res.register_advancement()
+                self.advance()
+
+                value = res.register(self.expr())
+                if res.error:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                    ))
+
+                element_nodes[key] = value
+
+            if self.current_tok.type != token.T_RCURL:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित ',' वा '}'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+        return res.success(nodes.DictionaryNode(
+            element_nodes,
+            pos_start,
+            self.current_tok.pos_end.copy()
+        ))
+
     def list_expr(self):
         res = pr.ParseResult()
         element_nodes = []
@@ -421,7 +509,8 @@ class Parser:
                 self.advance()
 
                 element_nodes.append(res.register(self.expr()))
-                if res.error: return res
+                if res.error:
+                    return res
 
             if self.current_tok.type != token.T_RSQUARE:
                 return res.failure(error.InvalidSyntaxError(
@@ -500,6 +589,12 @@ class Parser:
             if res.error:
                 return res
             return res.success(list_expr)
+
+        elif tok.type == token.T_LCURL:
+            dict_expr = res.register(self.dict_expr())
+            if res.error:
+                return res
+            return res.success(dict_expr)
 
         elif tok.matches(token.T_KEYWORD, 'यदि'):
             if_expr = res.register(self.if_expr())
