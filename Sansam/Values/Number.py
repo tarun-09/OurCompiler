@@ -4,6 +4,7 @@ import Sansam.Values.Boolean as boolean
 import Sansam.Error.Errors as error
 import Sansam.Values.Value as val
 
+
 class Number(val.Value):
     def __init__(self, value):
         super().__init__()
@@ -39,9 +40,7 @@ class Number(val.Value):
             return None, val.Value.illegal_operation(self, other)
 
     def factorial(self):
-        return Number(math.factorial(self.value)).set_context(self.context),None
-
-
+        return Number(math.factorial(self.value)).set_context(self.context), None
 
     def modulus(self, other):
         if isinstance(other, Number):

@@ -7,6 +7,7 @@ import Sansam.Error.Errors as error
 import Sansam.Values.Number as nu
 import Sansam.Values.String as String
 import Sansam.Values.List as li
+import os
 
 
 class BaseFunction(val.Value):
@@ -92,7 +93,7 @@ class BuiltInFunction(BaseFunction):
         method_name = f'execute_{self.name}'
         method = getattr(self, method_name, self.no_visit_method)
 
-        res.register(self.check_and_populate_args(method_name, args, exec_ctx))
+        res.register(self.check_and_populate_args(method.arg_names, args, exec_ctx))
         if res.error: return res
 
         return_value = res.register(method(exec_ctx))
@@ -109,20 +110,25 @@ class BuiltInFunction(BaseFunction):
         return copy
 
     def __repr__(self):
-        return f"<built-in-function {self.name}>"
+        return f"<built-in function {self.name}>"
+
+    #####################################
 
     def execute_print(self, exec_ctx):
         print(str(exec_ctx.symbol_table.get('value')))
         return rtr.RunTimeResult().success(nu.null)
+
     execute_print.arg_names = ['value']
 
     def execute_print_ret(self, exec_ctx):
-        return rtr.RunTimeResult().success(str(exec_ctx.st.SymbolTable.get('value')))
-    execute_print_ret.arg_names = ["value"]
+        return rtr.RunTimeResult().success(String.String(str(exec_ctx.symbol_table.get('value'))))
+
+    execute_print_ret.arg_names = ['value']
 
     def execute_input(self, exec_ctx):
         text = input()
-        return rtr.RunTimeResult().success(str(text))
+        return rtr.RunTimeResult().success(String.String(text))
+
     execute_input.arg_names = []
 
     def execute_input_int(self, exec_ctx):
@@ -132,52 +138,111 @@ class BuiltInFunction(BaseFunction):
                 number = int(text)
                 break
             except ValueError:
-                print(f"'{text}' must be an integer")
+                print(f"'{text}' must be an integer. Try again!")
         return rtr.RunTimeResult().success(nu.Number(number))
-    execute_input.arg_names = []
+
+    execute_input_int.arg_names = []
 
     def execute_is_number(self, exec_ctx):
-        is_number = isinstance(exec_ctx.st.SymbolTable.get('value'), nu.Number)
+        is_number = isinstance(exec_ctx.symbol_table.get("value"), nu.Number)
         return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
-    execute_is_number.arg_names = ['value']
+
+    execute_is_number.arg_names = ["value"]
 
     def execute_is_string(self, exec_ctx):
-        is_number = isinstance(exec_ctx.st.SymbolTable.get('value'), String.String)
+        is_number = isinstance(exec_ctx.symbol_table.get("value"), String.String)
         return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
-    execute_is_string.arg_names = ['value']
+
+    execute_is_string.arg_names = ["value"]
 
     def execute_is_list(self, exec_ctx):
-        is_number = isinstance(exec_ctx.st.SymbolTable.get('value'), li.List)
+        is_number = isinstance(exec_ctx.symbol_table.get("value"), li.List)
         return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
-    execute_is_list.arg_names = ['value']
+
+    execute_is_list.arg_names = ["value"]
 
     def execute_is_function(self, exec_ctx):
-        is_number = isinstance(exec_ctx.st.SymbolTable.get('value'), BaseFunction)
+        is_number = isinstance(exec_ctx.symbol_table.get("value"), BaseFunction)
         return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
-    execute_is_function.arg_names = ['value']
+
+    execute_is_function.arg_names = ["value"]
 
     def execute_append(self, exec_ctx):
-        list_ = exec_ctx.st.SymbolTable.get("list")
-        value = exec_ctx.st.SymbolTable.get("value")
+        list_ = exec_ctx.symbol_table.get("list")
+        value = exec_ctx.symbol_table.get("value")
 
         if not isinstance(list_, li.List):
             return rtr.RunTimeResult().failure(error.RunTimeError(
                 self.pos_start, self.pos_end,
-                "First argument should be list", exec_ctx
+                "First argument must be list",
+                exec_ctx
             ))
+
         list_.elements.append(value)
         return rtr.RunTimeResult().success(nu.null)
-    execute_append.args_name = ['list', 'value']
+
+    execute_append.arg_names = ["list", "value"]
+
+    def execute_pop(self, exec_ctx):
+        list_ = exec_ctx.symbol_table.get("list")
+        index = exec_ctx.symbol_table.get("index")
+
+        if not isinstance(list_, li.List):
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                "First argument must be list",
+                exec_ctx
+            ))
+
+        if not isinstance(index, nu.Number):
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                "Second argument must be number",
+                exec_ctx
+            ))
+
+        try:
+            element = list_.elements.pop(index.value)
+        except:
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                'Element at this index could not be removed from list because index is out of bounds',
+                exec_ctx
+            ))
+        return rtr.RunTimeResult().success(element)
+
+    execute_pop.arg_names = ["list", "index"]
+
+    def execute_extend(self, exec_ctx):
+        listA = exec_ctx.symbol_table.get("listA")
+        listB = exec_ctx.symbol_table.get("listB")
+
+        if not isinstance(listA, li.List):
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                "First argument must be list",
+                exec_ctx
+            ))
+
+        if not isinstance(listB, li.List):
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                "Second argument must be list",
+                exec_ctx
+            ))
+
+        listA.elements.extend(listB.elements)
+        return rtr.RunTimeResult().success(nu.null)
+
+    execute_extend.arg_names = ["listA", "listB"]
 
 
-BuiltInFunction.print = BuiltInFunction("print")
-a=BuiltInFunction.print
-BuiltInFunction.print_ret = BuiltInFunction("print_ret")
-BuiltInFunction.input = BuiltInFunction("आगम्")
-b=BuiltInFunction.input
-BuiltInFunction.input_int = BuiltInFunction("input_int")
-BuiltInFunction.is_number = BuiltInFunction("is_number")
-BuiltInFunction.is_string = BuiltInFunction("is_string")
-BuiltInFunction.is_list = BuiltInFunction("is_list")
-BuiltInFunction.is_function = BuiltInFunction("is_function")
-BuiltInFunction.append = BuiltInFunction("append")
+print_ = BuiltInFunction("print")
+print_ret = BuiltInFunction("print_ret")
+input_ = BuiltInFunction("input")
+input_int = BuiltInFunction("input_int")
+is_number_ = BuiltInFunction("is_number")
+is_string_ = BuiltInFunction("is_string")
+is_list_ = BuiltInFunction("is_list")
+is_function_ = BuiltInFunction("is_function")
+append_ = BuiltInFunction("append")

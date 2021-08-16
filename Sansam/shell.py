@@ -8,4 +8,4 @@ with codecs.open("D:\\program.txt", encoding='utf-8') as p:
     if error:
         print(error.as_string())
     else:
-        print(result)
+        print(repr(result))

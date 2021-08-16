@@ -22,6 +22,9 @@ class String(val.Value):
     def is_true(self):
         return len(self.value) > 0
 
+    def __str__(self):
+        return self.value
+
     def copy(self):
         copy = String(self.value)
         copy.set_pos(self.pos_start, self.pos_end)
