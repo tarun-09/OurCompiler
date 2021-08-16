@@ -1,47 +1,58 @@
+क = [2,3,6,8,9]
+
 
 ज = {3~"क", "ख"~8}
 ज
 
 ख = 0
-प्रति(क=5;1;)~
+प्रति(क=5;1;){
 	ख=ख+क
+}
 ख
 
-कार्य जोड(क,ख)~
+कार्य जोड(क,ख){
     क + ख
+}
 जोड(2,3)
 
 त=9
-यदि  त<2~
+यदि  त<2{
 	व=2
-नोचेत्  त>2 च त<7~
-	व=4"
-चेत्~
+}
+नोचेत्  त>2 च त<7{
+	व=4
+}
+चेत्{
 	व=3
 	त=8
+}
+
+मुद्रणः("मुद्रणः")
 
 #append
 म=[1,2,3]
 संकलः(म,4)
+म
 
 #pop
-पोप((म,4)
+पोप(म,0)
 
 #extend
 अतिसृ(म,[1,2,3])
+म
 
 
-print
-print_ret
-input
-input_int
-is_number
-is_string
-is_list
-is_function
-append
-pop
-extend
+#print
+#print_ret
+#input
+#input_int
+#is_number
+#is_string
+#is_list
+#is_function
+#append
+#pop
+#extend
 
 
 #have tp press enter to run while loop and same in if

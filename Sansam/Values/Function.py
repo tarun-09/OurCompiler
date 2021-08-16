@@ -55,10 +55,11 @@ class BaseFunction(val.Value):
 
 
 class Function(BaseFunction):
-    def __init__(self, name, body_node, arg_names):
+    def __init__(self, name, body_node, arg_names,should_auto_return):
         super().__init__(name)
         self.body_node = body_node
         self.arg_names = arg_names
+        self.should_auto_return = should_auto_return
 
     def execute(self, args):
         res = rtr.RunTimeResult()
@@ -73,7 +74,7 @@ class Function(BaseFunction):
         return res.success(value)
 
     def copy(self):
-        copy = Function(self.name, self.body_node, self.arg_names)
+        copy = Function(self.name, self.body_node, self.arg_names,self.should_auto_return)
         copy.set_context(self.context)
         copy.set_pos(self.pos_start, self.pos_end)
         return copy
