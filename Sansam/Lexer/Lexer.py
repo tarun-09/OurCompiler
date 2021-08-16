@@ -23,14 +23,13 @@ class Lexer:
         tokens = []
 
         while self.current_char is not None:
-            if self.current_char == ' ':
-                self.advance()
-            elif self.current_char == '\t':
-                tokens.append(token.Token(token.T_TAB, pos_start=self.pos))
+            if self.current_char in ' \t':
                 self.advance()
             elif self.current_char == '\n':
                 tokens.append(token.Token(token.T_NL, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '#':
+                self.skip_comment()
             elif self.current_char == '\r':
                 self.advance()
                 if self.current_char == '\n':
@@ -88,6 +87,12 @@ class Lexer:
                 self.advance()
             elif self.current_char == '$':
                 tokens.append(token.Token(token.T_BIT_NOT, pos_start=self.pos))
+            elif self.current_char == '{':
+                tokens.append(token.Token(token.T_LCURL, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '}':
+                tokens.append(token.Token(token.T_RCURL, pos_start=self.pos))
+
                 self.advance()
             elif self.current_char == ',':
                 tokens.append(token.Token(token.T_COMMA, pos_start=self.pos))
@@ -227,3 +232,11 @@ class Lexer:
 
         self.advance()
         return token.Token(token.T_STRING, string, pos_start=pos_start, pos_end=self.pos)
+
+    def skip_comment(self):
+        self.advance()
+
+        while self.current_char != '\n':
+            self.advance()
+
+        self.advance()
