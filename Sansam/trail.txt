@@ -16,6 +16,8 @@
 	व=3
 	त=8
 
+म=[1,2,3]
+संकलः(म,4)
 
 print
 print_ret
@@ -28,8 +30,6 @@ is_function
 append
 pop
 extend
-
-
 
 
 #have tp press enter to run while loop and same in if
