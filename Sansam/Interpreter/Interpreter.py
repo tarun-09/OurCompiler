@@ -78,6 +78,7 @@ class Interpreter:
                 return res
         else:
             if start_value.value < end_value.value:
+
                 step_value = num.Number(1)
             else:
                 step_value = num.Number(-1)
@@ -123,7 +124,7 @@ class Interpreter:
                 context
             ))
 
-        value = value.copy().set_pos(node.pos_start, node.pos_end)
+        value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(value)
 
     def visit_VarAssignNode(self, node, context):
@@ -244,6 +245,7 @@ class Interpreter:
             if res.loop_should_continue:
                 continue
 
+
             if res.loop_should_break:
                 break
 
@@ -252,6 +254,7 @@ class Interpreter:
         return res.success(
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
+
 
     def visit_FuncDefNode(self, node, context):
         res = rtr.RunTimeResult()
@@ -276,16 +279,19 @@ class Interpreter:
         value_to_call = res.register(self.visit(node.node_to_call, context))
         if res.should_return():
             return res
+
         value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
 
         for arg_node in node.arg_nodes:
             args.append(res.register(self.visit(arg_node, context)))
+
             if res.should_return():
                 return res
 
         return_value = res.register(value_to_call.execute(args))
         if res.should_return():
             return res
+
         return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(return_value)
 

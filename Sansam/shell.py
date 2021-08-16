@@ -11,5 +11,3 @@ with codecs.open("trail.txt", encoding='utf-8') as p:
     else:
         print(result)
 
-#gjgjk
-
