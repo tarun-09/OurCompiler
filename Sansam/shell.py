@@ -10,6 +10,7 @@ while True:
         print(result)
 
 # committed'''
+#Ookokoko
 import Run
 import codecs
 
