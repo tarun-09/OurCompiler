@@ -62,4 +62,6 @@
 #while loop not working after if/else
 #if we provide condition after else-> wrong error is provided and wrong at position
 #nothing working after if/else
+#build functions are returning an extra 0 like pop
+#while adding a number to list in general error should be returned  but its appending the number to list
 
