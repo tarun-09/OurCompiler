@@ -103,10 +103,10 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if not self.current_tok.type == token.T_THEN:
+        if not self.current_tok.type == token.T_LCURL:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित '~'"
+                "अपेक्षित '{' "
             ))
 
         res.register_advancement()
@@ -121,11 +121,20 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        body = res.register(self.indent_statements())
+        body = res.register(self.statements())
         if res.error:
             return res
 
-        return res.success(nodes.FuncDefNode(var_name_tok, arg_name_tokens, body))
+        if not self.current_tok.type == token.T_RCURL:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित '}' "
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        return res.success(nodes.FuncDefNode(var_name_tok, arg_name_tokens, body, False))
 
     def while_expr(self):
         res = pr.ParseResult()
@@ -144,27 +153,27 @@ class Parser:
         if res.error:
             return res
 
-        if not self.current_tok.type == token.T_THEN:
+        if not self.current_tok.type == token.T_LCURL:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित '~'"
+                "अपेक्षित '{'"
             ))
 
         res.register_advancement()
         self.advance()
 
-        if not self.current_tok.type == token.T_NL:
-            res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित नवीन् पङ्क्ति"
-            ))
-
-        res.register_advancement()
-        self.advance()
-
-        body = res.register(self.indent_statements())
+        body = res.register(self.statements())
         if res.error:
             return res
+
+        if not self.current_tok.type == token.T_RCURL:
+            res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित '}'"
+            ))
+
+        res.register_advancement()
+        self.advance()
 
         return res.success(nodes.WhileNode(condition, body))
 
@@ -186,36 +195,31 @@ class Parser:
         if res.error:
             return res
 
-        if not self.current_tok.type == token.T_THEN:
+        if not self.current_tok.type == token.T_LCURL:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित '~'"
+                "अपेक्षित '{'"
             ))
 
         res.register_advancement()
         self.advance()
 
-        if not self.current_tok.type == token.T_NL:
-            res.failure(error.InvalidSyntaxError(
-                self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित नवीन् पङ्क्ति"
-            ))
-
-        res.register_advancement()
-        self.advance()
-
-        expr = res.register(self.indent_statements())
+        expr = res.register(self.statements())
         if res.error: return res
         cases.append((condition, expr))
 
-        if not self.current_tok.type == token.T_NL:
+        if not self.current_tok.type == token.T_RCURL:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"अपेक्षित नवीन् पङ्क्ति"
+                "अपेक्षित '}"
             ))
 
         res.register_advancement()
         self.advance()
+
+        while self.current_tok.type == token.T_NL:
+            res.register_advancement()
+            self.advance()
 
         while self.current_tok.matches(token.T_KEYWORD, 'नोचेत्'):
             res.register_advancement()
@@ -224,34 +228,30 @@ class Parser:
             condition = res.register(self.expr())
             if res.error: return res
 
-            if not self.current_tok.type == token.T_THEN:
+            if not self.current_tok.type == token.T_LCURL:
                 return res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित '~'"
+                    "अपेक्षित '{'"
                 ))
 
             res.register_advancement()
             self.advance()
 
-            if not self.current_tok.type == token.T_NL:
-                res.failure(error.InvalidSyntaxError(
-                    self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित नवीन् पङ्क्ति"
-                ))
-
-            res.register_advancement()
-            self.advance()
-
-            expr = res.register(self.indent_statements())
-            if res.error: return res
+            expr = res.register(self.statements())
+            if res.error:
+                return res
             cases.append((condition, expr))
 
-            if not self.current_tok.type == token.T_NL:
+            if not self.current_tok.type == token.T_RCURL:
                 res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित नवीन् पङ्क्ति"
+                    "अपेक्षित '}'"
                 ))
 
+            res.register_advancement()
+            self.advance()
+
+        while self.current_tok.type == token.T_NL:
             res.register_advancement()
             self.advance()
 
@@ -259,26 +259,24 @@ class Parser:
             res.register_advancement()
             self.advance()
 
-            if not self.current_tok.type == token.T_THEN:
+            if not self.current_tok.type == token.T_LCURL:
                 return res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित '~'"
+                    "अपेक्षित '{'"
                 ))
 
             res.register_advancement()
             self.advance()
 
-            if not self.current_tok.type == token.T_NL:
+            else_case = res.register(self.statements())
+            if res.error:
+                return res
+
+            if not self.current_tok.type == token.T_RCURL:
                 res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित नवीन् पङ्क्ति"
+                    "अपेक्षित '}'"
                 ))
-
-            res.register_advancement()
-            self.advance()
-
-            else_case = res.register(self.indent_statements())
-            if res.error: return res
 
             res.register_advancement()
             self.advance()
@@ -332,12 +330,6 @@ class Parser:
                 f"Expected 'नामन्'"
             ))
 
-        # var_name = self.current_tok
-        # res.register_advancement()
-        # self.advance()
-
-        #if self.current_tok.type != token.T_EQU:
-
         if self.current_tok.type != token.T_SEP:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
@@ -364,7 +356,7 @@ class Parser:
         else:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f'Missing ","'
+                f'Missing ";"'
             ))
         if self.current_tok.type != token.T_RPAREN:
             return res.failure(error.InvalidSyntaxError(
@@ -375,7 +367,7 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if self.current_tok.type != token.T_THEN:
+        if self.current_tok.type != token.T_LCURL:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Missing "~"'
@@ -383,21 +375,109 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if self.current_tok.type != token.T_NL:
-            return res.failure(error.InvalidSyntaxError(
+        body = res.register(self.statements())
+
+        if res.error:
+            return res
+
+        if not self.current_tok.type == token.T_RCURL:
+            res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f'Expression start in New Line'
+                "अपेक्षित '}'"
             ))
 
         res.register_advancement()
         self.advance()
 
-        body = res.register(self.indent_statements())
-
-        if res.error:
-            return res
-
         return res.success(nodes.ForNode(var_name, start_value, end_point, step_value, body))
+
+    def dict_expr(self):
+        res = pr.ParseResult()
+        element_nodes = {}
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.type != token.T_LCURL:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित '{'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == token.T_RCURL:
+            res.register_advancement()
+            self.advance()
+
+        else:
+            key = res.register(self.expr())
+            if res.error:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                ))
+
+            if not self.current_tok.type == token.T_THEN:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित '~'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            value = res.register(self.expr())
+            if res.error:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                ))
+
+            element_nodes[key] = value
+
+            while self.current_tok.type == token.T_COMMA:
+                res.register_advancement()
+                self.advance()
+
+                key = res.register(self.expr())
+                if res.error:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                    ))
+
+                if not self.current_tok.type == token.T_THEN:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित '~'"
+                    ))
+
+                res.register_advancement()
+                self.advance()
+
+                value = res.register(self.expr())
+                if res.error:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित '}',अंकम्, चरः, '+', '-','[', वा  '('"
+                    ))
+
+                element_nodes[key] = value
+
+            if self.current_tok.type != token.T_RCURL:
+                return res.failure(error.InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "अपेक्षित ',' वा '}'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+        return res.success(nodes.DictionaryNode(
+            element_nodes,
+            pos_start,
+            self.current_tok.pos_end.copy()
+        ))
 
     def list_expr(self):
         res = pr.ParseResult()
@@ -429,12 +509,13 @@ class Parser:
                 self.advance()
 
                 element_nodes.append(res.register(self.expr()))
-                if res.error: return res
+                if res.error:
+                    return res
 
             if self.current_tok.type != token.T_RSQUARE:
                 return res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"अपेक्षित ',' or ']'"
+                    f"अपेक्षित ',' वा ']'"
                 ))
 
             res.register_advancement()
@@ -454,11 +535,19 @@ class Parser:
             res.register_advancement()
             self.advance()
             return res.success(nodes.NumberNode(tok))
-
+        elif tok.type == token.T_STRING:
+            res.register_advancement()
+            self.advance()
+            return res.success(nodes.StringNode(tok))
         elif tok.type == token.T_IDENTIFIER:
             res.register_advancement()
             self.advance()
             return res.success(nodes.VarAccessNode(tok))
+
+        elif tok.type == token.T_STRING:
+            res.register_advancement()
+            self.advance()
+            return res.success(nodes.StringNode(tok))
 
         elif tok.matches(token.T_KEYWORD, 'असत्यम्') or tok.matches(token.T_KEYWORD, 'सत्यम्'):
             res.register_advancement()
@@ -503,6 +592,12 @@ class Parser:
             if res.error:
                 return res
             return res.success(list_expr)
+
+        elif tok.type == token.T_LCURL:
+            dict_expr = res.register(self.dict_expr())
+            if res.error:
+                return res
+            return res.success(dict_expr)
 
         elif tok.matches(token.T_KEYWORD, 'यदि'):
             if_expr = res.register(self.if_expr())
@@ -611,18 +706,19 @@ class Parser:
             return res.success(nodes.UnaryOpNode(op_tok, node))
         elif self.current_tok.type == token.T_BIT_NOT:
 
-            op_tok=self.current_tok
+            op_tok = self.current_tok
             res.register_advancement()
             self.advance()
 
-            node=res.register(self.comp_expr())
-            if res.error:return error
+            node = res.register(self.comp_expr())
+            if res.error: return error
 
-            return res.success(nodes.UnaryOpNode(op_tok,node))
+            return res.success(nodes.UnaryOpNode(op_tok, node))
 
-
-        node = res.register(self.bin_op(self.arith_expr, (token.T_ISG, token.T_ISEQ, token.T_ISNEQ ,token.T_ISL,token.T_BIT_AND,
-                                                          token.T_ISLEQ,token.T_BIT_OR, token.T_ISGEQ)))
+        node = res.register(
+            self.bin_op(self.arith_expr, (token.T_ISG, token.T_ISEQ, token.T_ISNEQ, token.T_ISL, token.T_BIT_AND,
+                                          token.T_ISLEQ, token.T_BIT_OR, token.T_ISGEQ, token.T_RSHIFT, token.T_LSHIFT,
+                                          token.T_XOR)))
 
         if res.error:
             return res.failure(error.InvalidSyntaxError(
@@ -658,28 +754,41 @@ class Parser:
         if res.error:
             res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "अपेक्षित अंकम्, चरः, identifier, '+', '-' '[' वा '('"
+                "अपेक्षित अंकम्, चरः, नामन्, '+', '-' '[' वा '('"
             ))
 
         return res.success(node)
 
-    def tab_expr(self):
+    def statement(self):
         res = pr.ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
 
-        if self.current_tok.type == token.T_TAB:
+        if self.current_tok.matches(token.T_KEYWORD, 'यच्छ'):
             res.register_advancement()
             self.advance()
 
-            expr = res.register(self.expr())
-            if res.error:
-                return res
+            expr = res.try_register(self.expr())
+            if not expr:
+                self.reverse(res.to_reverse_count)
+            return res.success(nodes.ReturnNode(expr, pos_start, self.current_tok.pos_start.copy()))
 
-            return res.success(expr)
+        if self.current_tok.matches(token.T_KEYWORD, 'अनुवर्तते'):
+            res.register_advancement()
+            self.advance()
+            return res.success(nodes.ContinueNode(pos_start, self.current_tok.pos_start.copy()))
 
-        return res.failure(error.InvalidSyntaxError(
-            self.current_tok.pos_start, self.current_tok.pos_end,
-            "Indentation Expected"
-        ))
+        if self.current_tok.matches(token.T_KEYWORD, 'विघ्नः'):
+            res.register_advancement()
+            self.advance()
+            return res.success(nodes.BreakNode(pos_start, self.current_tok.pos_start.copy()))
+
+        expr = res.register(self.expr())
+        if res.error:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "अपेक्षित 'यच्छ', 'अनुवर्तते', 'विघ्नः', 'यदि', 'प्रति', 'यावद्', 'कार्य', अंकम्, चरः, नामन, '+', '-', '(', '[' वा 'न'"
+            ))
+        return res.success(expr)
 
     def statements(self):
         res = pr.ParseResult()
@@ -690,7 +799,7 @@ class Parser:
             res.register_advancement()
             self.advance()
 
-        statement = res.register(self.expr())
+        statement = res.register(self.statement())
         if res.error:
             return res
         statements.append(statement)
@@ -710,7 +819,7 @@ class Parser:
             if not more_statements:
                 break
 
-            statement = res.try_register(self.expr())
+            statement = res.try_register(self.statement())
             if not statement:
                 self.reverse(res.to_reverse_count)
                 more_statements = False
@@ -720,47 +829,6 @@ class Parser:
 
         return res.success(nodes.ListNode(
             statements, pos_start, self.current_tok.pos_end.copy()
-        ))
-
-    def indent_statements(self):
-        res = pr.ParseResult()
-        i_statements = []
-        pos_start = self.current_tok.pos_start.copy()
-
-        while self.current_tok.type == token.T_NL:
-            res.register_advancement()
-            self.advance()
-
-        statement = res.register(self.tab_expr())
-        if res.error:
-            return res
-        i_statements.append(statement)
-
-        more_statements = True
-
-        while True:
-            newline_count = 0
-            while self.current_tok.type == token.T_NL:
-                res.register_advancement()
-                self.advance()
-                newline_count += 1
-
-            if newline_count == 0:
-                more_statements = False
-
-            if not more_statements:
-                break
-
-            statement = res.try_register(self.tab_expr())
-            if not statement:
-                self.reverse(res.to_reverse_count)
-                more_statements = False
-                continue
-
-            i_statements.append(statement)
-        self.reverse()
-        return res.success(nodes.ListNode(
-            i_statements, pos_start, self.current_tok.pos_end.copy()
         ))
 
     ###############################################################

@@ -10,9 +10,10 @@ T_EOF = 'समन्त'
 T_KEYWORD = "आरक्षितपद"
 T_IDENTIFIER = "नामन्"
 T_NL = 'नवीन् पङ्क्ति'
-T_TAB = 'tab'
 T_THEN = '~'
 T_POW = '^'
+T_LCURL = '{'
+T_RCURL = '}'
 T_LPAREN = '('
 T_RPAREN = ')'
 T_LSQUARE = '['
@@ -24,16 +25,19 @@ T_BIT_AND= "&"
 T_BIT_OR="|"
 T_BIT_NOT="$"
 T_ISG = '>'
+T_RSHIFT = '>>'
 T_ISL = '<'
+T_LSHIFT = '<<'
+T_XOR = "^^"
 T_ISGEQ = '>='
 T_ISLEQ = '<='
 T_NOT = '!'
-T_COMMA	= ','
+T_COMMA = ','
 T_SEP = ';'
 T_FACT = 'T_FACT'
 
-KEYWORDS = [ 'च', 'वा', 'न', 'असत्यम्', 'सत्यम्', 'यावद्', 'प्रति', 'कार्य', 'यदि', 'नोचेत्', 'चेत्']
-
+KEYWORDS = ['च', 'वा', 'न', 'असत्यम्', 'सत्यम्', 'यावद्', 'प्रति', 'कार्य', 'यदि', 'नोचेत्', 'चेत्',
+            'अनुवर्तते', 'विघ्नः', 'यच्छ']
 
 
 class Token:
@@ -56,4 +60,3 @@ class Token:
         if self.value:
             return f'{self.type}->{self.value}'
         return f'{self.type}'
-

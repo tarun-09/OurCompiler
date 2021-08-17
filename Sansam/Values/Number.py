@@ -39,9 +39,7 @@ class Number(val.Value):
             return None, val.Value.illegal_operation(self, other)
 
     def factorial(self):
-        return Number(math.factorial(self.value)).set_context(self.context),None
-
-
+        return Number(math.factorial(self.value)).set_context(self.context), None
 
     def modulus(self, other):
         if isinstance(other, Number):
@@ -104,6 +102,25 @@ class Number(val.Value):
         else:
             return None, val.Value.illegal_operation(self, other)
 
+    def get_shift_right(self,other):
+        if isinstance(other, Number):
+            return Number(self.value >> other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def get_shift_left(self,other):
+        if isinstance(other, Number):
+            return Number(self.value << other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def get_xor(self,other):
+        if isinstance(other, Number):
+            return Number(self.value ^ other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+
     def anded_by(self, other):
         if isinstance(other, Number):
             return Number(self.value and other.value).set_context(self.context), None
@@ -141,4 +158,4 @@ class Number(val.Value):
 null = Number(0)
 false = Number(0)
 true = Number(1)
-math_PI = Number(math.pi)
+# math_PI = Number(math.pi)

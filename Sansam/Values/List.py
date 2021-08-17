@@ -49,11 +49,14 @@ class List(val.Value):
         else:
             return None, val.Value.illegal_operation(self, other)
 
+    def __str__(self):
+        return ", ".join([str(x) for x in self.elements])
+
     def copy(self):
-        copy = List(self.elements[:])
+        copy = List(self.elements)
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
 
     def __repr__(self):
-        return f'[{", ".join([str(x) for x in self.elements])}]'
+        return str(self.elements)
