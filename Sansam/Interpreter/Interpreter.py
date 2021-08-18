@@ -16,7 +16,7 @@ class Interpreter:
         return method(node, context)
 
     def no_visit_method(self, node, context):
-        raise Exception(f'No visit_{type(node).__name__} method defined')
+        raise Exception(f"No visit_{type(node).__name__} method defined")
 
     ###################################
 
@@ -36,7 +36,8 @@ class Interpreter:
 
         for element_node in node.element_nodes:
             elements.append(res.register(self.visit(element_node, context)))
-            if res.should_return(): return res
+            if res.should_return():
+                return res
 
         return res.success(
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
@@ -125,6 +126,35 @@ class Interpreter:
 
         value = value.copy().set_pos(node.pos_start, node.pos_end)
         return res.success(value)
+
+    def visit_DataAccessNode(self, node, context):
+        res = rtr.RunTimeResult()
+        var_name = node.var_name_tok.value
+        value = context.symbol_table.get(var_name)
+
+        if not value:
+            return res.failure(errors.RunTimeError(
+                node.pos_start, node.pos_end,
+                f"'{var_name}' is not defined",
+                context
+            ))
+
+        if isinstance(value, list.List) or isinstance(value,string.String) or isinstance(value,dict.Dictionary):
+            index = res.register(self.visit(node.index_tok, context))
+            if res.should_return():
+                return res
+
+            result, error = value.division(index)
+
+            if error:
+                return res.failure(error)
+            else:
+                return res.success(result)
+
+        return res.failure(errors.RunTimeError(
+            node.pos_start, node.pos_end,
+            "Dictionary, list and string should be present"
+        ))
 
     def visit_VarAssignNode(self, node, context):
         res = rtr.RunTimeResult()

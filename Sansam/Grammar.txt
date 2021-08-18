@@ -22,7 +22,10 @@ power               : factorial (POW factor)*
 
 factorial           : call (FACTORIAL)
 
-call                : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
+call                : access (LPAREN (expr (COMMA expr)*)? RPAREN)?
+
+access              : IDENTIFIER LSQUARE expr RSQUARE
+                    : atom
 
 atom                : INT|FLOAT|STRING|IDENTIFIER
                     : LPAREN expr RPAREN

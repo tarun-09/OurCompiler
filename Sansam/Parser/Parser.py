@@ -607,9 +607,39 @@ class Parser:
             "अपेक्षित अंकम्, चरः, '+', '-','[', वा  '('"
         ))
 
+    def access(self):
+        res = pr.ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.type == token.T_IDENTIFIER:
+            var_name = self.current_tok
+            res.register_advancement()
+            self.advance()
+
+            if self.current_tok.type == token.T_LSQUARE:
+                res.register_advancement()
+                self.advance()
+
+                expr = res.register(self.expr())
+                if res.error:
+                    return res
+
+                if self.current_tok.type == token.T_RSQUARE:
+                    res.register_advancement()
+                    self.advance()
+
+                    return res.success(nodes.DataAccessNode(var_name, expr, pos_start, self.current_tok.pos_end.copy()))
+
+                else:
+                    return res.failure(error.InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "अपेक्षित ']'"
+                    ))
+        return self.atom()
+
     def call(self):
         res = pr.ParseResult()
-        atom = res.register(self.atom())
+        access = res.register(self.access())
         if res.error:
             return res
 
@@ -645,8 +675,8 @@ class Parser:
 
                 res.register_advancement()
                 self.advance()
-            return res.success(nodes.CallNode(atom, arg_nodes))
-        return res.success(atom)
+            return res.success(nodes.CallNode(access, arg_nodes))
+        return res.success(access)
 
     def factorial(self):
         res = pr.ParseResult()
@@ -663,7 +693,7 @@ class Parser:
                 return res.success(nodes.FactorialNode(node, tok))
             return res.success(node)
 
-        return self.atom()
+        return self.call()
 
     def power(self):
         return self.bin_op(self.factorial, (token.T_POW,), self.factor)

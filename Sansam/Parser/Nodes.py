@@ -50,6 +50,15 @@ class VarAccessNode:
         self.pos_end = self.var_name_tok.pos_end
 
 
+class DataAccessNode:
+    def __init__(self, var_name_tok, index_tok, pos_start, pos_end):
+        self.var_name_tok = var_name_tok
+        self.index_tok = index_tok
+
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+
 class VarAssignNode:
     def __init__(self, var_name_tok, value_node):
         self.var_name_tok = var_name_tok
