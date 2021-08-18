@@ -4,7 +4,7 @@ import codecs
 with codecs.open("trail.txt", encoding='utf-8') as p:
 
     inp = p.read()
-    result, error = Run.run('firstprogram.txt', inp)
+    result, error = Run.run('program.txt', inp)
 
     if error:
         print(error.as_string())
