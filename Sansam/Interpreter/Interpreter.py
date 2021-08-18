@@ -7,10 +7,13 @@ import Sansam.Values.String as string
 import Sansam.Values.List as list
 import Sansam.Values.Function as func
 import Sansam.Values.Dictionary as dict
+import Sansam.Parser.Nodes as nodes
 
 
 class Interpreter:
+
     def visit(self, node, context):
+
         method_name = f'visit_{type(node).__name__}'
         method = getattr(self, method_name, self.no_visit_method)
         return method(node, context)
@@ -59,6 +62,7 @@ class Interpreter:
         )
 
     def visit_ForNode(self, node, context):
+        print(2234)
         res = rtr.RunTimeResult()
         elements = []
 
@@ -107,10 +111,28 @@ class Interpreter:
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
+    def visit_ForEachNode(self,node,context):
+        print(1)
+        res=rtr.RunTimeResult()
+        elements=[]
+        if  isinstance(node.list_name,list):
+            for node.var_name_tok in node.list_name:
+                value=res.register(self.visit(node.body_node,context))
+                elements.append(value)
+            return res.success(
+                list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        else:
+            print("hello")
+
+
+
     def visit_BooleanNode(self, node, context):
         return rtr.RunTimeResult().success(
             boolean.Boolean(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
+
+
 
     def visit_VarAccessNode(self, node, context):
         res = rtr.RunTimeResult()

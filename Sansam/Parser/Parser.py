@@ -309,15 +309,25 @@ class Parser:
             var_name = self.current_tok
             res.register_advancement()
             self.advance()
-            if self.current_tok.type == token.T_SEP:
+            if self.current_tok.type == token.T_SEP:  ## it matches ";"
                 start_value = None
-            elif self.current_tok.type == token.T_EQU:
+
+
+            elif self.current_tok.type == token.T_EQU:  ## it matches "=="
                 res.register_advancement()
                 self.advance()
-
                 start_value = res.register(self.expr())
                 if res.error:
                     return res
+
+            elif self.current_tok.type == token.T_THEN:  ## matches "~"
+                self.reverse()
+                self.for_each_node(self.current_tok)  # calling of for each node
+
+                res.register_advancement()
+                self.advance()
+
+
             else:
                 return res.failure(error.InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
@@ -335,6 +345,7 @@ class Parser:
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 f'Missing ";"'
             ))
+
         res.register_advancement()
         self.advance()
         end_point = res.register(self.expr())
@@ -478,6 +489,58 @@ class Parser:
             pos_start,
             self.current_tok.pos_end.copy()
         ))
+
+    def for_each_node(self, identifier_1):
+
+        res = pr.ParseResult()
+        res.register_advancement()
+        self.advance()
+
+        pos_start = self.current_tok.pos_start.copy()
+        if self.current_tok.type != token.T_THEN:
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected '~'"))
+        res.register_advancement()
+        self.advance()
+
+        if (self.current_tok.type != token.T_IDENTIFIER):
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected List or string"))
+        var_name = self.current_tok
+        res.register_advancement()
+        self.advance()
+
+        if (self.current_tok.type != token.T_RPAREN):
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected ')'"))
+        res.register_advancement()
+        self.advance()
+
+        if (self.current_tok.type != token.T_LCURL):
+
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected Left Curly Braces "))
+        res.register_advancement()
+        self.advance()
+
+        body = res.register(self.statements())
+
+        if res.error:
+            return res
+        
+        if self.current_tok.type != token.T_RCURL:
+
+            return res.failure(error.InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected Right Curly Braces "))
+        res.register_advancement()
+        self.advance()
+
+        return res.success(nodes.ForEachNode(identifier_1, var_name, body))
 
     def list_expr(self):
         res = pr.ParseResult()
