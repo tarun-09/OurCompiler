@@ -7,6 +7,18 @@ class String(val.Value):
         super().__init__()
         self.value = value
 
+    def iter(self):
+        li=[]
+        for i in self.value:
+            li.append(i)
+        return li
+
+    def length(self):
+        counter=0
+        for i in self.value:
+            counter=counter+1
+        return counter
+
     def addition(self, other):
         if isinstance(other, String):
             return String(self.value + other.value).set_context(self.context), None

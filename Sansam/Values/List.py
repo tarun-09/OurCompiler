@@ -8,6 +8,17 @@ class List(val.Value):
         super().__init__()
         self.elements = elements
 
+    def iter(self):
+        li=[]
+        for i in self.elements:
+            li.append(i)
+        return li
+    def length(self):
+        counter=0
+        for i in self.elements:
+            counter=counter+1
+        return counter
+
     def addition(self, other):
         new_list = self.copy()
         new_list.elements.append(other)
@@ -35,6 +46,9 @@ class List(val.Value):
             return new_list, None
         else:
             return None, val.Value.illegal_operation(self, other)
+
+
+
 
     def division(self, other):
         if isinstance(other, num.Number):

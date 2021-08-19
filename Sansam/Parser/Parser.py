@@ -322,10 +322,16 @@ class Parser:
 
             elif self.current_tok.type == token.T_THEN:  ## matches "~"
                 self.reverse()
-                self.for_each_node(self.current_tok)  # calling of for each node
 
-                res.register_advancement()
-                self.advance()
+                var_name=self.current_tok
+                list_name,body=self.for_each_node(self.current_tok)
+                #print(self.current_tok)
+
+
+                return res.success(nodes.ForEachNode(var_name,list_name,body))  # calling of for each node
+
+                # res.register_advancement()
+                # self.advance()
 
 
             else:
@@ -531,8 +537,9 @@ class Parser:
 
         if res.error:
             return res
-        
+
         if self.current_tok.type != token.T_RCURL:
+            print(1)
 
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
@@ -540,7 +547,8 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        return res.success(nodes.ForEachNode(identifier_1, var_name, body))
+        return var_name,body
+        #return res.success(nodes.ForEachNode(identifier_1, var_name, body))
 
     def list_expr(self):
         res = pr.ParseResult()

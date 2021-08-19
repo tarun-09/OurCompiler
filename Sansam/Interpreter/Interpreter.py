@@ -62,7 +62,7 @@ class Interpreter:
         )
 
     def visit_ForNode(self, node, context):
-        print(2234)
+
         res = rtr.RunTimeResult()
         elements = []
 
@@ -112,13 +112,24 @@ class Interpreter:
         )
 
     def visit_ForEachNode(self,node,context):
-        print(1)
+
         res=rtr.RunTimeResult()
         elements=[]
-        if  isinstance(node.list_name,list):
-            for node.var_name_tok in node.list_name:
+
+        var_name=node.var_name.value
+        list_name=context.symbol_table.get(node.list_name.value)
+        #print(list_name)
+
+
+
+        if  isinstance(list_name,list.List) or isinstance(list_name,string.String):
+            li=list_name.iter()
+
+            for var_name in li:
+                context.symbol_table.set(node.var_name.value,var_name)
                 value=res.register(self.visit(node.body_node,context))
-                elements.append(value)
+                #elements.append(value)
+                #print(elements)
             return res.success(
                 list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
             )
