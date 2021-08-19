@@ -63,3 +63,13 @@
 #if we provide condition after else-> wrong error is provided and wrong at position
 #nothing working after if/else
 
+
+क = [3,5,7,90]
+क[0]
+
+ख = "सत्यम्"
+ख[1]
+
+ग = {1~2, 4~5, 9~5}
+ग[2]
+

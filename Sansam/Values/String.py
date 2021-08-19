@@ -1,5 +1,6 @@
 import Sansam.Values.Value as val
 import Sansam.Values.Number as num
+import Sansam.Error.Errors as error
 
 
 class String(val.Value):
@@ -16,6 +17,19 @@ class String(val.Value):
     def multiplication(self, other):
         if isinstance(other, num.Number):
             return String(self.value * other.value).set_context(self.context), None
+        else:
+            return None, val.Value.illegal_operation(self, other)
+
+    def division(self, other):
+        if isinstance(other, num.Number):
+            try:
+                return self.value[other.value], None
+            except:
+                return None, error.RunTimeError(
+                    other.pos_start, other.pos_end,
+                    'Element at this index could not be retrieved from list because index is out of bounds',
+                    self.context
+                )
         else:
             return None, val.Value.illegal_operation(self, other)
 
