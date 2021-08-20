@@ -168,11 +168,12 @@ class BuiltInFunction(BaseFunction):
 
     execute_is_function.arg_names = ["value"]
 
-    def execute_is_dictionary(self, exec_ctx):
-        is_number = isinstance(exec_ctx.symbol_table.get("value"), dict.Dictionary)
-        return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
-
-    execute_is_dictionary.arg_names = ["value"]
+    # def execute_is_dictionary(self, exec_ctx):
+    #     print(exec_ctx.symbol_table.get("value"))
+    #     is_number = isinstance(exec_ctx.symbol_table.get("value"), dict.Dictionary)
+    #     return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
+    #
+    # execute_is_dictionary.arg_names = ["value"]
 
     def execute_append(self, exec_ctx):
         list_ = exec_ctx.symbol_table.get("list")
@@ -294,7 +295,7 @@ is_number_ = BuiltInFunction("is_number")
 is_string_ = BuiltInFunction("is_string")
 is_list_ = BuiltInFunction("is_list")
 is_function_ = BuiltInFunction("is_function")
-is_dictionary_=BuiltInFunction("is_dictionary_")
+is_dictionary_ = BuiltInFunction("is_dictionary_")
 append_ = BuiltInFunction("append")
 pop_ = BuiltInFunction("pop")
 extend_ = BuiltInFunction("extend")
