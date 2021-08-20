@@ -191,7 +191,7 @@ class BuiltInFunction(BaseFunction):
     execute_append.arg_names = ["list", "value"]
 
     def execute_getKeys(self, exec_ctx):
-        dict_ = exec_ctx.symbol_table.get("dict")
+        dict_ = exec_ctx.symbol_table.get("Dictionary")
         if not isinstance(dict_, dict.Dictionary):
             return rtr.RunTimeResult().failure(error.RunTimeError(
                 self.pos_start, self.pos_end,
@@ -199,19 +199,20 @@ class BuiltInFunction(BaseFunction):
                 exec_ctx
             ))
         try:
-            element = dict_.elements.keys()
+            element = list(dict_.elements.keys())
+            print(element)
         except:
             return rtr.RunTimeResult().failure(error.RunTimeError(
                 self.pos_start, self.pos_end,
                 'Dictionary is empty',
                 exec_ctx
             ))
-        return rtr.RunTimeResult().success(element)
+        return rtr.RunTimeResult().success(nu.null)
 
-    execute_getKeys.arg_names = ["dict"]
+    execute_getKeys.arg_names = ["Dictionary"]
 
     def execute_getValues(self, exec_ctx):
-        dict_ = exec_ctx.symbol_table.get("dict")
+        dict_ = exec_ctx.symbol_table.get("Dictionary")
         if not isinstance(dict_, dict.Dictionary):
             return rtr.RunTimeResult().failure(error.RunTimeError(
                 self.pos_start, self.pos_end,
@@ -219,16 +220,17 @@ class BuiltInFunction(BaseFunction):
                 exec_ctx
             ))
         try:
-            element = dict_.elements.values()
+            element = list(dict_.elements.values())
+            print(element)
         except:
             return rtr.RunTimeResult().failure(error.RunTimeError(
                 self.pos_start, self.pos_end,
                 'Dictionary is empty',
                 exec_ctx
             ))
-        return rtr.RunTimeResult().success(element)
+        return rtr.RunTimeResult().success(nu.null)
 
-    execute_getValues.arg_names = ["dict"]
+    execute_getValues.arg_names = ["Dictionary"]
 
     def execute_pop(self, exec_ctx):
         list_ = exec_ctx.symbol_table.get("list")
