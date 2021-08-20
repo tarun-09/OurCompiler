@@ -18,9 +18,12 @@ global_symbol_table.set("किम्_पूर्णाङ्क", func.is_numb
 global_symbol_table.set("किम्_सूत्र", func.is_string_)
 global_symbol_table.set("किम्_आवलि", func.is_list_)
 global_symbol_table.set("किम्_कार्य", func.is_function_)
+global_symbol_table.set("किम्",func.is_dictionary_)
 global_symbol_table.set("संकलः", func.append_)
 global_symbol_table.set("पोप", func.pop_)
 global_symbol_table.set("अतिसृ", func.extend_)
+global_symbol_table.set("कील", func.keys_)
+global_symbol_table.set("गति", func.values_)
 
 def run(fn, text):
     # Generate tokens

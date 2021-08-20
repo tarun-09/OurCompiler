@@ -7,7 +7,7 @@ import Sansam.Error.Errors as error
 import Sansam.Values.Number as nu
 import Sansam.Values.String as String
 import Sansam.Values.List as li
-import os
+import Sansam.Values.Dictionary as dict
 
 
 class BaseFunction(val.Value):
@@ -55,7 +55,7 @@ class BaseFunction(val.Value):
 
 
 class Function(BaseFunction):
-    def __init__(self, name, body_node, arg_names,should_auto_return):
+    def __init__(self, name, body_node, arg_names, should_auto_return):
         super().__init__(name)
         self.body_node = body_node
         self.arg_names = arg_names
@@ -74,7 +74,7 @@ class Function(BaseFunction):
         return res.success(value)
 
     def copy(self):
-        copy = Function(self.name, self.body_node, self.arg_names,self.should_auto_return)
+        copy = Function(self.name, self.body_node, self.arg_names, self.should_auto_return)
         copy.set_context(self.context)
         copy.set_pos(self.pos_start, self.pos_end)
         return copy
@@ -168,6 +168,12 @@ class BuiltInFunction(BaseFunction):
 
     execute_is_function.arg_names = ["value"]
 
+    def execute_is_dictionary(self, exec_ctx):
+        is_number = isinstance(exec_ctx.symbol_table.get("value"), dict.Dictionary)
+        return rtr.RunTimeResult().success(nu.true if is_number else nu.false)
+
+    execute_is_dictionary.arg_names = ["value"]
+
     def execute_append(self, exec_ctx):
         list_ = exec_ctx.symbol_table.get("list")
         value = exec_ctx.symbol_table.get("value")
@@ -183,6 +189,46 @@ class BuiltInFunction(BaseFunction):
         return rtr.RunTimeResult().success(nu.null)
 
     execute_append.arg_names = ["list", "value"]
+
+    def execute_getKeys(self, exec_ctx):
+        dict_ = exec_ctx.symbol_table.get("dict")
+        if not isinstance(dict_, dict.Dictionary):
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                "argument must be Dictionary",
+                exec_ctx
+            ))
+        try:
+            element = dict_.elements.keys()
+        except:
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                'Dictionary is empty',
+                exec_ctx
+            ))
+        return rtr.RunTimeResult().success(element)
+
+    execute_getKeys.arg_names = ["dict"]
+
+    def execute_getValues(self, exec_ctx):
+        dict_ = exec_ctx.symbol_table.get("dict")
+        if not isinstance(dict_, dict.Dictionary):
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                "argument must be Dictionary",
+                exec_ctx
+            ))
+        try:
+            element = dict_.elements.values()
+        except:
+            return rtr.RunTimeResult().failure(error.RunTimeError(
+                self.pos_start, self.pos_end,
+                'Dictionary is empty',
+                exec_ctx
+            ))
+        return rtr.RunTimeResult().success(element)
+
+    execute_getValues.arg_names = ["dict"]
 
     def execute_pop(self, exec_ctx):
         list_ = exec_ctx.symbol_table.get("list")
@@ -246,6 +292,9 @@ is_number_ = BuiltInFunction("is_number")
 is_string_ = BuiltInFunction("is_string")
 is_list_ = BuiltInFunction("is_list")
 is_function_ = BuiltInFunction("is_function")
+is_dictionary_=BuiltInFunction("is_dictionary_")
 append_ = BuiltInFunction("append")
-pop_=BuiltInFunction("pop")
-extend_=BuiltInFunction("extend")
+pop_ = BuiltInFunction("pop")
+extend_ = BuiltInFunction("extend")
+keys_ = BuiltInFunction("getKeys")
+values_ = BuiltInFunction("getValues")

@@ -1,10 +1,14 @@
 import Sansam.Values.Value as val
+import Sansam.Values.Number as num
+import Sansam.Error.Errors as error
 
 
 class Dictionary(val.Value):
     def __init__(self, elements):
         super().__init__()
         self.elements = elements
+
+
 
     def copy(self):
         copy = Dictionary(self.elements)
