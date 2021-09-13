@@ -1,36 +1,5 @@
-क = [3,5,7,90]
-क
-
-
-ख = "सत्यम्"
-ख
-
-ग = {1~2, 4~5, 9~5}
-ग
+ख =[4,5,6,7,8]
+ख[1]
 
 
 
-#print
-#print_ret
-#input
-#input_int
-#is_number
-#is_string
-#is_list
-#is_function
-#append
-#pop
-#extend
-
-
-#have tp press enter to run while loop and same in if
-#wrong error message when a value is assigned to a keyword
-#string_with_error pointing at wrong position when two (and/or) are used
-#tab not supported in if loop condition
-#while loop not working after if/else
-#if we provide condition after else-> wrong error is provided and wrong at position
-#nothing working after if/else
-#pop command by default printing the popped value
-#lists concatination is showing error
-#[IMP]In all methods and functions given, it is printing the the operation value by default
-#while adding a string and number it is showing runtime error instead of Type-error

@@ -122,9 +122,9 @@ class Interpreter:
 
 
 
-        if  isinstance(list_name,list.List) or isinstance(list_name,string.String):
+        if  isinstance(list_name,list.List):
             li=list_name.iter()
-
+            print(li,"li")
             for var_name in li:
                 context.symbol_table.set(node.var_name.value,var_name)
                 value=res.register(self.visit(node.body_node,context))
@@ -133,8 +133,18 @@ class Interpreter:
             return res.success(
                 list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
             )
-        else:
-            print("hello")
+        elif isinstance(list_name,string.String):
+            print(list_name)
+            li=list_name.iter()
+
+            for var_name in li:
+                context.symbol_table.set(node.var_name.value, var_name)
+                value = res.register(self.visit(node.body_node, context))
+                # elements.append(value)
+                # print(elements)
+            return res.success(
+                list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
 
 
 
@@ -156,7 +166,7 @@ class Interpreter:
                 f"'{var_name}' is not defined",
                 context
             ))
-
+        # print(value)
         value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(value)
 
