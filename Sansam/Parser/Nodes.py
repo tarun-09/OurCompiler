@@ -104,6 +104,16 @@ class ForNode:
         self.pos_end = self.body_node.pos_end
 
 
+class ForEachNode:
+    def __init__(self, var_name_tok, list_name, body_node):
+        self.var_name = var_name_tok
+        self.list_name = list_name
+        self.body_node = body_node
+
+        self.pos_start = self.var_name.pos_start
+        self.pos_end = self.body_node.pos_end
+
+
 class FactorialNode:
     def __init__(self, node, op_tok):
         self.op_tok = op_tok

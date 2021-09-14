@@ -26,7 +26,6 @@ def run(fn, text):
     # Generate tokens
     lexer = Sansam.Lexer.Lexer.Lexer(fn, text)
     tokens, error = lexer.make_tokens()
-
     if error:
         return None, error
 

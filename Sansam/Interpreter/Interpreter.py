@@ -7,10 +7,13 @@ import Sansam.Values.String as string
 import Sansam.Values.List as list
 import Sansam.Values.Function as func
 import Sansam.Values.Dictionary as dict
+import Sansam.Parser.Nodes as nodes
 
 
 class Interpreter:
+
     def visit(self, node, context):
+
         method_name = f'visit_{type(node).__name__}'
         method = getattr(self, method_name, self.no_visit_method)
         return method(node, context)
@@ -60,6 +63,7 @@ class Interpreter:
         )
 
     def visit_ForNode(self, node, context):
+
         res = rtr.RunTimeResult()
         elements = []
 
@@ -108,10 +112,49 @@ class Interpreter:
             list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
+    def visit_ForEachNode(self,node,context):
+
+        res=rtr.RunTimeResult()
+        elements=[]
+
+        var_name=node.var_name.value
+        list_name=context.symbol_table.get(node.list_name.value)
+        #print(list_name)
+
+
+
+        if  isinstance(list_name,list.List):
+            li=list_name.iter()
+            print(li,"li")
+            for var_name in li:
+                context.symbol_table.set(node.var_name.value,var_name)
+                value=res.register(self.visit(node.body_node,context))
+                #elements.append(value)
+                #print(elements)
+            return res.success(
+                list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        elif isinstance(list_name,string.String):
+            print(list_name)
+            li=list_name.iter()
+
+            for var_name in li:
+                context.symbol_table.set(node.var_name.value, var_name)
+                value = res.register(self.visit(node.body_node, context))
+                # elements.append(value)
+                # print(elements)
+            return res.success(
+                list.List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+
+
+
     def visit_BooleanNode(self, node, context):
         return rtr.RunTimeResult().success(
             boolean.Boolean(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
+
+
 
     def visit_VarAccessNode(self, node, context):
         res = rtr.RunTimeResult()
@@ -124,7 +167,7 @@ class Interpreter:
                 f"'{var_name}' is not defined",
                 context
             ))
-
+        # print(value)
         value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(value)
 
