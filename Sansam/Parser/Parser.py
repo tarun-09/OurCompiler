@@ -248,6 +248,7 @@ class Parser:
                     "अपेक्षित '}'"
                 ))
 
+
             res.register_advancement()
             self.advance()
 
