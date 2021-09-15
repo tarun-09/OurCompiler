@@ -309,26 +309,24 @@ class Parser:
             var_name = self.current_tok
             res.register_advancement()
             self.advance()
-            if self.current_tok.type == token.T_SEP:  ## it matches ";"
+            if self.current_tok.type == token.T_SEP:
                 start_value = None
 
-
-            elif self.current_tok.type == token.T_EQU:  ## it matches "=="
+            elif self.current_tok.type == token.T_EQU:
                 res.register_advancement()
                 self.advance()
                 start_value = res.register(self.expr())
                 if res.error:
                     return res
 
-            elif self.current_tok.type == token.T_THEN:  ## matches "~"
+            elif self.current_tok.type == token.T_THEN:
                 self.reverse()
 
-                var_name=self.current_tok
-                list_name,body=self.for_each_node(self.current_tok)
-                #print(self.current_tok)
+                var_name = self.current_tok
+                list_name, body = self.for_each_node(self.current_tok)
+                # print(self.current_tok)
 
-
-                return res.success(nodes.ForEachNode(var_name,list_name,body))  # calling of for each node
+                return res.success(nodes.ForEachNode(var_name, list_name, body))  # calling of for each node
 
                 # res.register_advancement()
                 # self.advance()
@@ -510,7 +508,7 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if (self.current_tok.type != token.T_IDENTIFIER):
+        if self.current_tok.type != token.T_IDENTIFIER:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 f"Expected List or string"))
@@ -518,15 +516,14 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        if (self.current_tok.type != token.T_RPAREN):
+        if self.current_tok.type != token.T_RPAREN:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 f"Expected ')'"))
         res.register_advancement()
         self.advance()
 
-        if (self.current_tok.type != token.T_LCURL):
-
+        if self.current_tok.type != token.T_LCURL:
             return res.failure(error.InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 f"Expected Left Curly Braces "))
@@ -547,8 +544,8 @@ class Parser:
         res.register_advancement()
         self.advance()
 
-        return var_name,body
-        #return res.success(nodes.ForEachNode(identifier_1, var_name, body))
+        return var_name, body
+        # return res.success(nodes.ForEachNode(identifier_1, var_name, body))
 
     def list_expr(self):
         res = pr.ParseResult()
@@ -709,6 +706,8 @@ class Parser:
                         self.current_tok.pos_start, self.current_tok.pos_end,
                         "अपेक्षित ']'"
                     ))
+            else:
+                self.reverse()
         return self.atom()
 
     def call(self):
