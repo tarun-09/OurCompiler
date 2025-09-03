@@ -67,10 +67,14 @@ class List(val.Value):
         return ", ".join([str(x) for x in self.elements])
 
     def copy(self):
-        copy = List(self.elements)
+        # Create a deep copy of elements to prevent shared references
+        copy = List(self.elements[:])
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
+
+    def __str__(self):
+        return ", ".join([str(x) for x in self.elements])
 
     def __repr__(self):
         return str(self.elements)

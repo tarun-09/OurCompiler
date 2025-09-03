@@ -50,16 +50,13 @@ class String(val.Value):
         return len(self.value) > 0
 
     def __str__(self):
-
         return self.value
 
     def copy(self):
-
         copy = String(self.value)
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
-
 
     def __repr__(self):
         return f"'{self.value}'"

@@ -14,6 +14,8 @@ class BaseFunction(val.Value):
     def __init__(self, name):
         super().__init__()
         self.name = name or "<anonymous>"
+        self.pos_start = None  # Will be set when function is created
+        self.pos_end = None    # Will be set when function is created
 
     def generate_new_context(self):
         new_context = ct.Context(self.name, self.context, self.pos_start)
