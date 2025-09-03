@@ -1,10 +1,66 @@
 
-Sansam/Parser/__pycache__/Parser.cpython-39.pyc
-Sansam/Parser/__pycache__/Nodes.cpython-39.pyc
+# Python-specific ignores
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller-specific
+*.manifest
+*.spec
+build/
+dist/
+
+# IDE-specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Environment-specific
+.env
+.venv
+venv/
+ENV/
+.python-version
+
+# Operating System-specific
+.DS_Store
+Thumbs.db
+*.log
+
+# Project-specific
+Sansam/trail.txt
+demo/
+**/trail.txt
+
+# Compiled Python files
 *.pyc
-Sansam/__pycache__/Run.cpython-39.pyc
-Sansam/Interpreter/__pycache__/Interpreter.cpython-39.pyc
-Sansam/Interpreter/__pycache__/SymbolTable.cpython-39.pyc
-Sansam/Lexer/__pycache__/Lexer.cpython-39.pyc
-Sansam/Lexer/__pycache__/Token.cpython-39.pyc
-Sansam/Values/__pycache__/Function.cpython-39.pyc
+*.pyo
+*.pyd
+.Python
+__pycache__/
+*.so
+.coverage

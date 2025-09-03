@@ -1,0 +1,16 @@
+# Basic arithmetic
+क = 10
+ख = 20
+योग = क + ख
+मुद्रणः(योग)
+
+# List example
+सूची = [1, 2, 3]
+मुद्रणः(सूची)
+
+# Simple if condition
+यदि क > ख {
+    मुद्रणः("क is greater than ख")
+} चेत् {
+    मुद्रणः("ख is greater than or equal to क")
+}
