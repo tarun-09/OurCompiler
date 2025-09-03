@@ -1,10 +1,14 @@
-import Run
+from Sansam import Run
 import codecs
+import os
 
-with codecs.open("D:\\program.txt", encoding='utf-8') as p:
+# Get the directory containing this script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+trail_file = os.path.join(script_dir, "trail.txt")
 
+with codecs.open(trail_file, encoding='utf-8') as p:
     inp = p.read()
-    result, error = Run.run('trail.txt', inp)
+    result, error = Run.run(trail_file, inp)
 
     if error:
         print(error.as_string())
